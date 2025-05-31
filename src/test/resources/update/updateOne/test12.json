@@ -1,0 +1,31 @@
+[
+    {
+        "globalUniqueChangeId": "update test 12 1",
+        "author": "test user",
+        "targetCollection": "test_12",
+        "change": {
+            "action": "insertOne",
+            "document": {
+                "_id": ObjectId("582ebf010936ac3ba5cd00e2"),
+                "value 1": "lorem ipsum dolor sit amet",
+                "value 2": "star wars"
+            }
+        }
+    },
+    {
+        "globalUniqueChangeId": "update test 12 2",
+        "author": "test user",
+        "targetCollection": "test_12",
+        "change": {
+            "action": "updateOne",
+            "filter": {
+                "_id": "582ebf010936ac3ba5cd00e2"
+            },
+            "document": {
+                "$set": {
+                    "value 2": "star wars - a new hope"
+                }
+            }
+        }
+    }
+]

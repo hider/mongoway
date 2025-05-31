@@ -1,0 +1,12 @@
+[
+    {
+        "globalUniqueChangeId": "update validation 06",
+        "author": "test user",
+        "targetCollection": "update_documents",
+        "change": {
+            "action": "insertMany",
+            "documents": [],
+            "relativeToChangelog": true
+        }
+    }
+]

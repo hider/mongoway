@@ -1,0 +1,17 @@
+[
+    {
+        "globalUniqueChangeId": "update updateMany error 2",
+        "author": "test user",
+        "targetCollection": "updateMany",
+        "change": {
+            "action": "updateMany",
+            "filter": {
+            },
+            "document": {
+                "$set": {
+                    "key": "value"
+                }
+            }
+        }
+    }
+]

@@ -1,0 +1,13 @@
+[
+    {
+        "globalUniqueChangeId": "id 4",
+        "author": "test user",
+        "targetCollection": "test_collection",
+        "change": {
+            "action": "insertOne",
+            "document": {
+                "doc": 4
+            }
+        }
+    }
+]

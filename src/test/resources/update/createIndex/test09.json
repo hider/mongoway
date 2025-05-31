@@ -1,0 +1,28 @@
+[
+    {
+        "globalUniqueChangeId": "update test 09 1",
+        "author": "test user",
+        "targetCollection": "test_09",
+        "change": {
+            "action": "createIndex",
+            "keys": {
+                "foo": 1
+            }
+        }
+    },
+    {
+        "globalUniqueChangeId": "update test 09 2",
+        "author": "test user",
+        "targetCollection": "test_09",
+        "change": {
+            "action": "createIndex",
+            "keys": {
+                "bar": -1
+            },
+            "options": {
+                "name": "bar_1_name",
+                "unique": true
+            }
+        }
+    }
+]

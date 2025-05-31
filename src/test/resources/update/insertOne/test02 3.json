@@ -1,0 +1,17 @@
+[
+    {
+        "globalUniqueChangeId": "update insertOne 2 1",
+        "author": "test user",
+        "targetCollection": "test_02",
+        "change": {
+            "action": "insertOne",
+            "document": {
+                "documentId": "update 2",
+                "foo": 1,
+                "bar": {
+                    "baz": 5
+                }
+            }
+        }
+    }
+]

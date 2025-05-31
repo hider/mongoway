@@ -1,0 +1,12 @@
+[
+    {
+        "globalUniqueChangeId": "update insertMany error 1",
+        "author": "test user",
+        "targetCollection": "test_06",
+        "change": {
+            "action": "insertMany",
+            "documents": [
+            ]
+        }
+    }
+]

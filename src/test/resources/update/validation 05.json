@@ -1,0 +1,12 @@
+[
+    {
+        "globalUniqueChangeId": "update validation 05",
+        "author": "test user",
+        "targetCollection": "update_documents",
+        "change": {
+            "action": "insertMany",
+            "documents": [],
+            "externalDocumentsPath": "path/to/documents.json"
+        }
+    }
+]

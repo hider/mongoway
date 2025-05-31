@@ -1,0 +1,10 @@
+[
+    {
+        "globalUniqueChangeId": "update dropIndex error 3",
+        "author": "test user",
+        "targetCollection": "dropIndex",
+        "change": {
+            "action": "dropIndex"
+        }
+    }
+]

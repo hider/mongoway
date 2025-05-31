@@ -1,0 +1,12 @@
+[
+    {
+        "globalUniqueChangeId": "update test 03 1",
+        "author": "test user",
+        "targetCollection": "test_03",
+        "change": {
+            "action": "insertOne",
+            "relativeToChangelog": true,
+            "externalDocumentPath": "ext.json"
+        }
+    }
+]

@@ -1,0 +1,17 @@
+[
+    {
+        "globalUniqueChangeId": "update test 05 4",
+        "author": "test user",
+        "targetCollection": "test_05",
+        "change": {
+            "action": "updateOne",
+            "filter": {
+            },
+            "document": {
+                "$set": {
+                    "key": "value"
+                }
+            }
+        }
+    }
+]

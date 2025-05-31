@@ -1,0 +1,12 @@
+[
+    {
+        "globalUniqueChangeId": "globalUniqueChangeId 1",
+        "author": "test user",
+        "targetCollection": "database_changelog",
+        "change": {
+            "action": "insertOne",
+            "document": {
+            }
+        }
+    }
+]

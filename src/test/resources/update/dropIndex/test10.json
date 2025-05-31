@@ -1,0 +1,48 @@
+[
+    {
+        "globalUniqueChangeId": "update test 10 1",
+        "author": "test user",
+        "targetCollection": "test_10",
+        "change": {
+            "action": "createIndex",
+            "keys": {
+                "foo": 1
+            }
+        }
+    },
+    {
+        "globalUniqueChangeId": "update test 10 2",
+        "author": "test user",
+        "targetCollection": "test_10",
+        "change": {
+            "action": "createIndex",
+            "keys": {
+                "bar": -1
+            },
+            "options": {
+                "name": "bar_1_name",
+                "unique": true
+            }
+        }
+    },
+    {
+        "globalUniqueChangeId": "update test 10 3",
+        "author": "test user",
+        "targetCollection": "test_10",
+        "change": {
+            "action": "dropIndex",
+            "name": "foo_1"
+        }
+    },
+    {
+        "globalUniqueChangeId": "update test 10 4",
+        "author": "test user",
+        "targetCollection": "test_10",
+        "change": {
+            "action": "dropIndex",
+            "keys": {
+                "bar": -1
+            }
+        }
+    }
+]

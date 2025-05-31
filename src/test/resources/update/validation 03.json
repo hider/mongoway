@@ -1,0 +1,12 @@
+[
+    {
+        "globalUniqueChangeId": "update validation 03",
+        "author": "test user",
+        "targetCollection": "update_documents",
+        "change": {
+            "action": "insertOne",
+            "document": {},
+            "relativeToChangelog": true
+        }
+    }
+]

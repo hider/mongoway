@@ -1,0 +1,35 @@
+[
+    {
+        "globalUniqueChangeId": "id 1",
+        "author": "test user",
+        "targetCollection": "test_collection",
+        "change": {
+            "action": "insertOne",
+            "document": {
+                "doc": 1
+            }
+        }
+    },
+    {
+        "globalUniqueChangeId": "id 2",
+        "author": "test user",
+        "targetCollection": "test_collection",
+        "change": {
+            "action": "insertOne",
+            "document": {
+                "doc": 2
+            }
+        }
+    },
+    {
+        "globalUniqueChangeId": "id 3",
+        "author": "test user",
+        "targetCollection": "test_collection",
+        "change": {
+            "action": "insertOne",
+            "document": {
+                "doc": 3
+            }
+        }
+    }
+]

@@ -1,0 +1,17 @@
+[
+    {
+        "globalUniqueChangeId": "update insertOne 11 1",
+        "author": "test user",
+        "targetCollection": "test_11",
+        "change": {
+            "action": "insertOne",
+            "document": {
+                "documentId": "update insertOne 11 1",
+                "foo": "bar"
+            }
+        },
+        "run": {
+            "always": true
+        }
+    }
+]

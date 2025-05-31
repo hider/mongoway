@@ -1,0 +1,13 @@
+[
+    {
+        "globalUniqueChangeId": "test parse error 2",
+        "author": "test user",
+        "targetCollection": "update_documents",
+        "change": {
+            "action": "updateOne",
+            "document": {
+                "foo": 1
+            }
+        }
+    }
+]

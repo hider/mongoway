@@ -1,0 +1,46 @@
+[
+    {
+        "globalUniqueChangeId": "update updateMany error 3 1",
+        "author": "test user",
+        "targetCollection": "updateMany",
+        "change": {
+            "action": "insertMany",
+            "documents": [
+                {
+                    "number": 100
+                },
+                {
+                    "number": 200
+                },
+                {
+                    "number": 300
+                },
+                {
+                    "number": 400
+                },
+                {
+                    "number": 500
+                }
+            ]
+        }
+    },
+    {
+        "globalUniqueChangeId": "update updateMany error 3 2",
+        "author": "test user",
+        "targetCollection": "updateMany",
+        "change": {
+            "action": "updateMany",
+            "filter": {
+                "number": {
+                    "$gte": 222
+                }
+            },
+            "document": {
+                "$inc": {
+                    "number": 50
+                }
+            },
+            "expectedModifiedCount": 2
+        }
+    }
+]

@@ -1,0 +1,49 @@
+[
+    {
+        "globalUniqueChangeId": "rollback 5 1",
+        "author": "test user",
+        "targetCollection": "rollback_documents",
+        "change": {
+            "action": "insertMany",
+            "documents": [
+                {
+                    "documentId": "rollback 5 1",
+                    "num": 100
+                },
+                {
+                    "documentId": "rollback 5 1",
+                    "num": 200
+                },
+                {
+                    "documentId": "rollback 5 1",
+                    "num": 300
+                }
+            ]
+        }
+    },
+    {
+        "globalUniqueChangeId": "rollback 5 2",
+        "author": "test user",
+        "targetCollection": "rollback_documents",
+        "change": {
+            "action": "updateMany",
+            "filter": {
+                "num": {
+                    "$gte": 1
+                }
+            },
+            "externalDocumentPath": "ext.json",
+            "relativeToChangelog": true
+        },
+        "rollbackChange": {
+            "action": "updateMany",
+            "filter": {
+                "num": {
+                    "$gte": 1
+                }
+            },
+            "externalDocumentPath": "extRollback.json",
+            "relativeToChangelog": true
+        }
+    }
+]

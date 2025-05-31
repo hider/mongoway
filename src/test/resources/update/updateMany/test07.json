@@ -1,0 +1,57 @@
+[
+    {
+        "globalUniqueChangeId": "update test 07 1",
+        "author": "test user",
+        "targetCollection": "test_07",
+        "change": {
+            "action": "insertMany",
+            "documents": [
+                {
+                    "key 0": "value 0",
+                    "lookup": "this"
+                },
+                {
+                    "key 1": "value 1"
+                },
+                {
+                    "key 2": "value 2",
+                    "lookup": "this"
+                },
+                {
+                    "key 3": "value 3",
+                    "lookup": "that",
+                    "counter": 100
+                }
+            ]
+        }
+    },
+    {
+        "globalUniqueChangeId": "update test 07 2",
+        "author": "test user",
+        "targetCollection": "test_07",
+        "change": {
+            "action": "updateMany",
+            "filter": {
+                "lookup": "this"
+            },
+            "document": {
+                "$set": {
+                    "new prop": 47
+                }
+            }
+        }
+    },
+    {
+        "globalUniqueChangeId": "update test 07 3",
+        "author": "test user",
+        "targetCollection": "test_07",
+        "change": {
+            "action": "updateMany",
+            "filter": {
+                "lookup": "that"
+            },
+            "externalDocumentPath": "ext.json",
+            "relativeToChangelog": true
+        }
+    }
+]

@@ -1,0 +1,12 @@
+[
+    {
+        "globalUniqueChangeId": "test parse error 3",
+        "author": "test user",
+        "targetCollection": "update_documents",
+        "change": {
+            "action": "updateMany",
+            "documents": [],
+            "expectedModifiedCount": "string"
+        }
+    }
+]

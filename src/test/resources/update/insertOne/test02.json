@@ -1,0 +1,47 @@
+[
+    {
+        "globalUniqueChangeId": "update insertOne 2 1",
+        "author": "test user",
+        "targetCollection": "test_02",
+        "change": {
+            "action": "insertOne",
+            "document": {
+                "documentId": "update 2",
+                "foo": 1,
+                "bar": {
+                    "baz": 2
+                }
+            }
+        }
+    },
+    {
+        "globalUniqueChangeId": "update insertOne 2 2",
+        "author": "test user",
+        "targetCollection": "test_02",
+        "change": {
+            "action": "insertOne",
+            "document": {
+                "documentId": "update 2",
+                "foo": 2,
+                "bar": {
+                    "baz": 3
+                }
+            }
+        }
+    },
+    {
+        "globalUniqueChangeId": "update insertOne 2 3",
+        "author": "test user",
+        "targetCollection": "test_02",
+        "change": {
+            "action": "insertOne",
+            "document": {
+                "oid": ObjectId("573a1391f29313caabcd9637"),
+                "createdAt": ISODate("2020-09-30T18:22:51.648Z"),
+                "numViews": NumberLong("36520312"),
+                "regex": /foo/,
+            }
+        },
+        "description": "extended JSON types"
+    }
+]

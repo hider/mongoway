@@ -1,0 +1,31 @@
+[
+    {
+        "globalUniqueChangeId": "update test 05 1",
+        "author": "test user",
+        "targetCollection": "test_05",
+        "change": {
+            "action": "insertOne",
+            "document": {
+                "_id": "update test 05 1 _id",
+                "value 1": "lorem ipsum dolor sit amet",
+                "value 2": "star wars"
+            }
+        }
+    },
+    {
+        "globalUniqueChangeId": "update test 05 2",
+        "author": "test user 2",
+        "targetCollection": "test_05",
+        "change": {
+            "action": "updateOne",
+            "filter": {
+                "value 1": "lorem ipsum dolor sit amet"
+            },
+            "document": {
+                "$set": {
+                    "value 2": "😎 😀 🦄 🍕 🚀 🐙 🎉"
+                }
+            }
+        }
+    }
+]

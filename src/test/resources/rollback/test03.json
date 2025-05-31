@@ -1,0 +1,29 @@
+[
+    {
+        "globalUniqueChangeId": "rollback 3 1",
+        "author": "test user",
+        "targetCollection": "rollback_documents",
+        "change": {
+            "action": "insertOne",
+            "document": {
+                "documentId": "rollback 3",
+                "foo": 1,
+                "baz": 2,
+                "bar": {
+                    "baz": 3
+                }
+            },
+            "rollbackChange": {
+                "action": "deleteOne",
+                "document": {
+                    "foo": 1,
+                    "baz": 2,
+                    "bar": {
+                        "baz": 3
+                    }
+                }
+            }
+        },
+        "description": "provided original description"
+    }
+]

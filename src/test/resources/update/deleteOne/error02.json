@@ -1,0 +1,12 @@
+[
+    {
+        "globalUniqueChangeId": "update deleteOne error 2",
+        "author": "test user",
+        "targetCollection": "deleteOne",
+        "change": {
+            "action": "deleteOne",
+            "filter": {
+            }
+        }
+    }
+]

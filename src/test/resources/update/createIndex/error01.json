@@ -1,0 +1,12 @@
+[
+    {
+        "globalUniqueChangeId": "update createIndex error 1",
+        "author": "test user",
+        "targetCollection": "createIndex",
+        "change": {
+            "action": "createIndex",
+            "keys": {
+            }
+        }
+    }
+]

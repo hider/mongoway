@@ -1,0 +1,22 @@
+[
+    {
+        "globalUniqueChangeId": "update 4 duplicate",
+        "author": "test user",
+        "targetCollection": "update_documents",
+        "change": {
+            "action": "insertOne",
+            "document": {
+            }
+        }
+    },
+    {
+        "globalUniqueChangeId": "update 4 duplicate",
+        "author": "test user",
+        "targetCollection": "update_documents",
+        "change": {
+            "action": "updateOne",
+            "filter": {
+            }
+        }
+    }
+]

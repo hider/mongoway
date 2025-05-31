@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: MongoWay
+logging:
+  level:
+    org:
+      springframework:
+        data:
+            mongodb: DEBUG

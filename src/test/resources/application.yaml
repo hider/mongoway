@@ -1,0 +1,3 @@
+mongoway:
+  test:
+    database-name: integration_tests

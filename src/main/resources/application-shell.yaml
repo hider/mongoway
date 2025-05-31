@@ -1,0 +1,16 @@
+spring:
+  main:
+    banner-mode: OFF
+logging:
+  level:
+    io:
+      github:
+        hider:
+          mongoway: INFO
+    org:
+      springframework:
+        boot: OFF
+        data:
+          mongodb: ERROR
+  pattern:
+    console: "%msg%n"

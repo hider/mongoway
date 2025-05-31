@@ -1,0 +1,44 @@
+[
+    {
+        "globalUniqueChangeId": "rollback 1 1",
+        "author": "test user",
+        "targetCollection": "rollback_documents",
+        "change": {
+            "action": "insertOne",
+            "document": {
+                "documentId": "rollback 1",
+                "foo": 1,
+                "baz": 2,
+                "bar": {
+                    "baz": 3
+                }
+            }
+        }
+    },
+    {
+        "globalUniqueChangeId": "rollback 1 2",
+        "author": "test user",
+        "targetCollection": "rollback_documents",
+        "change": {
+            "action": "insertOne",
+            "document": {
+                "documentId": "rollback 1",
+                "foo": 1,
+                "baz": 2,
+                "bar": {
+                    "baz": 3
+                }
+            },
+            "rollbackChange": {
+                "action": "deleteOne",
+                "document": {
+                    "foo": 1,
+                    "baz": 2,
+                    "bar": {
+                        "baz": 3
+                    }
+                }
+            }
+        }
+    }
+]
