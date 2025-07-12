@@ -6,6 +6,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.7"
     `java-test-fixtures`
     jacoco
+    application
 }
 
 group = "io.github.hider"
@@ -45,14 +46,22 @@ dependencyManagement {
     }
 }
 
-springBoot {
-    buildInfo()
+application {
+    mainClass = "io.github.hider.mongoway.MongoWayApplicationKt"
+    applicationDefaultJvmArgs = listOf(
+        "--enable-native-access=ALL-UNNAMED",
+        "-Dspring.profiles.active=shell",
+    )
 }
 
 kotlin {
     compilerOptions {
         freeCompilerArgs.addAll("-Xjsr305=strict")
     }
+}
+
+springBoot {
+    buildInfo()
 }
 
 tasks.withType<Test> {
@@ -64,4 +73,11 @@ tasks.jacocoTestReport {
     reports {
         xml.required = true
     }
+}
+
+tasks.register<Exec>("dockerBuild") {
+    dependsOn(tasks.installDist)
+    group = "build"
+    description = "Builds the Docker image for MongoWay"
+    commandLine("docker", "build", "--tag", "ghcr.io/hider/mongoway:latest", ".")
 }
