@@ -81,6 +81,13 @@ The first argument is the connection string which should include the database na
 - `createIndex`: Create an index on a collection.
 - `dropIndex`: Drop an index from a collection.
 
+## Usage
+
+Make sure you have Java 21 available on your system.
+Download the latest release from the [releases page](https://github.com/hider/mongoway/releases) and extract it to a folder.
+
+Launch the command line tool using `bin/mongoway`.
+
 ## License
 
 This project is licensed under _GNU General Public License v3.0_, see [LICENSE](/LICENSE).
