@@ -5,6 +5,7 @@ plugins {
     id("org.springframework.boot") version "3.4.7"
     id("io.spring.dependency-management") version "1.1.7"
     `java-test-fixtures`
+    jacoco
 }
 
 group = "io.github.hider"
@@ -57,4 +58,10 @@ kotlin {
 tasks.withType<Test> {
     useJUnitPlatform()
     jvmArgs("-javaagent:${mockitoAgent.asPath}")
+}
+
+tasks.jacocoTestReport {
+    reports {
+        xml.required = true
+    }
 }

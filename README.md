@@ -3,6 +3,9 @@
 Inspired by [Liquibase](https://docs.liquibase.com/concepts/introduction-to-liquibase.html),
 MongoWay is a command-line tool designed to help developers manage changes in MongoDB databases.
 
+[![Gradle CI](https://github.com/hider/mongoway/actions/workflows/gradle-ci.yml/badge.svg)](https://github.com/hider/mongoway/actions/workflows/gradle-ci.yml)
+[![codecov](https://codecov.io/github/hider/mongoway/graph/badge.svg?token=ZZ7L88LGKO)](https://codecov.io/github/hider/mongoway)
+
 ## Features
 
 - Specify the changes in JSON files, [Extended JSON](https://www.mongodb.com/docs/manual/reference/mongodb-extended-json/) syntax is supported.
