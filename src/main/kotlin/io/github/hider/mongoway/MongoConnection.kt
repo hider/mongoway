@@ -109,7 +109,7 @@ class MongoConnection(
         val javaName = System.getProperty("java.vm.name").substringBefore(" ")
         val javaVersion = System.getProperty("java.vm.version")
         val appName =
-            "$javaName/$javaVersion ${buildProperties.name}/${buildProperties.version}".let {
+            "$javaName/$javaVersion MongoWay/${buildProperties.version}".let {
                 URLEncoder.encode(it, StandardCharsets.UTF_8)
             }
         val csUri = URI.create(connectionStringBase)

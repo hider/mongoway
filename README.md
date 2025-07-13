@@ -1,10 +1,13 @@
-# MongoWay - A Database Change Management Tool for MongoDB
+# MongoWay
 
-Inspired by [Liquibase](https://docs.liquibase.com/concepts/introduction-to-liquibase.html),
+**A Database Change Management Tool for MongoDB**
+
+Inspired by [Liquibase](https://github.com/liquibase/liquibase),
 MongoWay is a command-line tool designed to help developers manage changes in MongoDB databases.
 
 [![Gradle CI](https://github.com/hider/mongoway/actions/workflows/gradle-ci.yml/badge.svg)](https://github.com/hider/mongoway/actions/workflows/gradle-ci.yml)
 [![codecov](https://codecov.io/github/hider/mongoway/graph/badge.svg?token=ZZ7L88LGKO)](https://codecov.io/github/hider/mongoway)
+[![Coverage Status](https://coveralls.io/repos/github/hider/mongoway/badge.svg?branch=main)](https://coveralls.io/github/hider/mongoway?branch=main)
 
 ## Features
 
@@ -83,10 +86,21 @@ The first argument is the connection string which should include the database na
 
 ## Usage
 
-Make sure you have Java 21 available on your system.
-Download the latest release from the [releases page](https://github.com/hider/mongoway/releases) and extract it to a folder.
+Ensure Java 21 runtime is available on your system.
+Download the latest release archive from the [releases page](https://github.com/hider/mongoway/releases) and extract its contents to a desired directory.
 
-Launch the command line tool using `bin/mongoway`.
+Navigate to the extracted directory and launch MongoWay by executing `bin/mongoway`.
+
+### Supported commands
+
+- `update <connection string> <path to change log>...`: Apply changes from the specified change log(s) to the MongoDB database.
+- `rollback <connection string> <globalUniqueChangeId>`: Rollback the change with the specified `globalUniqueChangeId`.
+- `validate <path to change log>...`: Validate the change log(s) for correctness and consistency.
+- `query <connection string> <globalUniqueChangeId>`: Find a change set with the specified `globalUniqueChangeId`.
+
+Refer to [MongoDB Docs](https://www.mongodb.com/docs/manual/reference/connection-string/#standard-connection-string-format) for the connection string format
+and ensure it includes the default database name.
+For local databases listening on the default port 27017, it is enough to specify the database name only.
 
 ## License
 
