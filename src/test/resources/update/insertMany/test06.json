@@ -34,7 +34,7 @@
         "targetCollection": "test_06",
         "change": {
             "action": "insertMany",
-            "externalDocumentsPath": "update/insertMany/ext2.json"
+            "externalDocumentsPath": "src/test/resources/update/insertMany/ext2.json"
         }
     }
 ]

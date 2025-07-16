@@ -9,13 +9,13 @@ import org.bson.codecs.configuration.CodecRegistries
 import org.bson.json.JsonParseException
 import org.bson.json.JsonReader
 import org.slf4j.LoggerFactory
+import org.springframework.core.io.FileSystemResourceLoader
 import org.springframework.core.io.Resource
-import org.springframework.core.io.ResourceLoader
 import org.springframework.stereotype.Component
 
 @Component
 class ActionContext(
-    private val loader: ResourceLoader,
+    private val mongoWayResourceLoader: FileSystemResourceLoader,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -47,17 +47,25 @@ class ActionContext(
     }
 
     fun toDocuments(path: String): List<Document> {
-        val reader = toReader(path)
-        return toDocuments(reader)
+        try {
+            val reader = toReader(path)
+            return toDocuments(reader)
+        } catch (e: IllegalArgumentException) {
+            throw ChangeValidationException("external document [$path] ${e.message}", e)
+        }
     }
 
     fun toDocuments(resource: Resource): List<Document> {
-        val reader = toReader(resource)
-        return toDocuments(reader)
+        try {
+            val reader = toReader(resource)
+            return toDocuments(reader)
+        } catch (e: IllegalArgumentException) {
+            throw ChangeValidationException("external document [$resource] ${e.message}", e)
+        }
     }
 
     private fun toResource(path: String): Resource {
-        return loader.getResource(path)
+        return mongoWayResourceLoader.getResource(path)
     }
 
     private fun toDocuments(reader: JsonReader): List<Document> {
@@ -65,9 +73,9 @@ class ActionContext(
         try {
             reader.readStartArray()
         } catch (e: JsonParseException) {
-            throw IllegalArgumentException("Not a JSON array.", e)
+            throw IllegalArgumentException("should be a JSON array", e)
         } catch (e: BsonInvalidOperationException) {
-            throw IllegalArgumentException("Not a JSON array.", e)
+            throw IllegalArgumentException("should be a JSON array", e)
         }
         while (reader.readBsonType() != BsonType.END_OF_DOCUMENT) {
             val doc = documentCodec.decode(reader, decoderContext)
@@ -79,7 +87,7 @@ class ActionContext(
 
     private fun toReader(resource: Resource): JsonReader {
         if (!resource.isReadable) {
-            throw IllegalArgumentException("External document $resource is not readable. Ensure the resource exists.")
+            throw IllegalArgumentException("is not readable. Ensure the resource exists")
         }
         if (resource.isFile) {
             log.info("Reading external file ${resource.file.absolutePath}")

@@ -6,7 +6,7 @@
         "change": {
             "action": "insertOne",
             "relativeToChangelog": false,
-            "externalDocumentPath": "update/insertOne/ext2.json"
+            "externalDocumentPath": "src/test/resources/update/insertOne/ext2.json"
         }
     }
 ]

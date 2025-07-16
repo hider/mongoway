@@ -98,9 +98,23 @@ Navigate to the extracted directory and launch MongoWay by executing `bin/mongow
 - `validate <path to change log>...`: Validate the change log(s) for correctness and consistency.
 - `query <connection string> <globalUniqueChangeId>`: Find a change set with the specified `globalUniqueChangeId`.
 
+#### connection string
+
 Refer to [MongoDB Docs](https://www.mongodb.com/docs/manual/reference/connection-string/#standard-connection-string-format) for the connection string format
 and ensure it includes the default database name.
 For local databases listening on the default port 27017, it is enough to specify the database name only.
+
+#### path to change log
+
+The path to the change log(s) can be either absolute or relative.
+For Windows paths, use forward slashes (`/`) or double backslashes (`\\`) as directory separators instead of the default single backslashes (`\`).
+
+### Container images
+
+MongoWay images are available in two variants:
+
+- `ghcr.io/hider/mongoway:<version>-alpine`: Alpine Linux based with JRE and jar files.
+- `ghcr.io/hider/mongoway:<version>-native`: Native image built with Paketo Buildpacks (experimental).
 
 ## License
 

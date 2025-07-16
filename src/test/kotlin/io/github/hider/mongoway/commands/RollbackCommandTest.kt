@@ -26,7 +26,7 @@ class RollbackCommandTest {
     @Test
     fun `insertOne rollback`() {
         val connectionString = testMongo.connectionString + '/' + config.databaseName
-        updateCommand.update(connectionString, "rollback/test02.json")
+        updateCommand.update(connectionString, "src/test/resources/rollback/test02.json")
         connection.useDatabase(connectionString) { db, repo ->
             val firstInsertedId = db.getCollection("rollback_documents")
                 .find(Document(mapOf("documentId" to "rollback 2")))
@@ -65,7 +65,7 @@ class RollbackCommandTest {
     @Test
     fun `insertOne rollback error`() {
         val connectionString = testMongo.connectionString + '/' + config.databaseName
-        updateCommand.update(connectionString, "rollback/test01.json")
+        updateCommand.update(connectionString, "src/test/resources/rollback/test01.json")
         val globalUniqueChangeId = "rollback 1 1"
         command.rollback(connectionString, globalUniqueChangeId)
         assertFailsWith<IllegalStateException> {
@@ -78,7 +78,7 @@ class RollbackCommandTest {
     @Test
     fun `insertOne rollback with description`() {
         val connectionString = testMongo.connectionString + '/' + config.databaseName
-        updateCommand.update(connectionString, "rollback/test03.json")
+        updateCommand.update(connectionString, "src/test/resources/rollback/test03.json")
         connection.useDatabase(connectionString) { db, repo ->
             val firstInsertedId = db.getCollection("rollback_documents")
                 .find(Document(mapOf("documentId" to "rollback 3")))
@@ -114,7 +114,7 @@ class RollbackCommandTest {
     @Test
     fun `updateMany with external file rollback`() {
         val connectionString = testMongo.connectionString + '/' + config.databaseName
-        updateCommand.update(connectionString, "rollback/test05.json")
+        updateCommand.update(connectionString, "src/test/resources/rollback/test05.json")
         command.rollback(connectionString, "rollback 5 2")
         connection.useDatabase(connectionString) { db, repo ->
             val documents =  db.getCollection("rollback_documents")

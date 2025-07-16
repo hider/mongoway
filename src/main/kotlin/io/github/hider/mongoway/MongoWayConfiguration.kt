@@ -10,6 +10,8 @@ import org.bson.codecs.pojo.ClassModel
 import org.bson.codecs.pojo.PojoCodecProvider
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.core.io.FileSystemResourceLoader
+import org.springframework.core.io.Resource
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions
 import java.lang.reflect.Type
 
@@ -38,6 +40,18 @@ class MongoWayConfiguration {
     @Bean
     fun customConversions(): MongoCustomConversions {
         return MongoCustomConversions(emptyList<Any>())
+    }
+
+    @Bean
+    fun mongoWayResourceLoader(): FileSystemResourceLoader {
+        return object : FileSystemResourceLoader() {
+            override fun getResource(location: String): Resource {
+                if (location.startsWith("/")) {
+                    return super.getResource("file:$location")
+                }
+                return super.getResource(location)
+            }
+        }
     }
 
     private fun createChangeActionCodecProvider(sourceTypeMap: Map<Class<out ChangeAction>, String>): CodecProvider {

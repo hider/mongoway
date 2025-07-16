@@ -1,0 +1,11 @@
+[
+    {
+        "globalUniqueChangeId": "update test 15 1",
+        "author": "test user",
+        "targetCollection": "test_15",
+        "change": {
+            "action": "insertMany",
+            "externalDocumentsPath": "src/test/resources/update/insertMany/non_existing.json"
+        }
+    }
+]

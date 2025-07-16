@@ -10,14 +10,14 @@ import org.bson.json.JsonReader
 import org.jline.terminal.Terminal
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.ObjectProvider
+import org.springframework.core.io.FileSystemResourceLoader
 import org.springframework.core.io.Resource
-import org.springframework.core.io.ResourceLoader
 import org.springframework.stereotype.Component
 import java.io.Reader
 
 @Component
 class ChangelogProcessor(
-    private val resourceLoader: ResourceLoader,
+    private val mongoWayResourceLoader: FileSystemResourceLoader,
     private val customCodecRegistry: CodecRegistry,
     private val terminalProvider: ObjectProvider<Terminal>,
     private val actionContext: ActionContext,
@@ -78,7 +78,7 @@ class ChangelogProcessor(
                 )
                 continue
             }
-            val changelog = resourceLoader.getResource(path)
+            val changelog = mongoWayResourceLoader.getResource(path)
             if (!changelog.isReadable) {
                 yield(
                     Pair(

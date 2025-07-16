@@ -3,7 +3,7 @@ package io.github.hider.mongoway.commands
 import io.github.hider.mongoway.*
 import org.slf4j.LoggerFactory
 import org.springframework.boot.info.BuildProperties
-import org.springframework.core.io.ResourceLoader
+import org.springframework.core.io.FileSystemResourceLoader
 import org.springframework.shell.command.annotation.Command
 import org.springframework.shell.command.annotation.Option
 import java.time.LocalDateTime
@@ -14,7 +14,7 @@ import java.time.format.FormatStyle
 @IdeaCommandDetection
 @Command(group = COMMAND_GROUP)
 class UpdateCommand(
-    private val resourceLoader: ResourceLoader,
+    private val mongoWayResourceLoader: FileSystemResourceLoader,
     private val buildProperties: BuildProperties,
     private val connection: MongoConnection,
     private val changelogProcessor: ChangelogProcessor,
@@ -48,7 +48,7 @@ class UpdateCommand(
                     if (!processedChangeSets.add(changeSet.globalUniqueChangeId)) {
                         throw ChangeValidationException(globalUniqueChangeIdViolationError(changelogPath, changeSet.globalUniqueChangeId))
                     }
-                    val changelogResource = resourceLoader.getResource(changelogPath)
+                    val changelogResource = mongoWayResourceLoader.getResource(changelogPath)
                     val hash = changelogProcessor.preValidate(changeSet, changelogResource)
                     val executeChangeSet = {
                         log.info("changeSet[globalUniqueChangeId={}}] is executing...", changeSet.globalUniqueChangeId)

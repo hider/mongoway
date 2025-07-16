@@ -1,6 +1,9 @@
 spring:
   application:
     name: MongoWay
+  shell:
+    history:
+      enabled: false
 logging:
   level:
     org:

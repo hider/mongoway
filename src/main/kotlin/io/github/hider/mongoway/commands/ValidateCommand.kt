@@ -1,20 +1,20 @@
 package io.github.hider.mongoway.commands
 
-import io.github.hider.mongoway.ChangelogProcessor
 import io.github.hider.mongoway.ChangeValidationException
+import io.github.hider.mongoway.ChangelogProcessor
 import io.github.hider.mongoway.changelogError
 import io.github.hider.mongoway.globalUniqueChangeIdViolationError
 import org.jline.utils.AttributedStringBuilder
 import org.jline.utils.AttributedStyle
 import org.slf4j.LoggerFactory
-import org.springframework.core.io.ResourceLoader
+import org.springframework.core.io.FileSystemResourceLoader
 import org.springframework.shell.command.annotation.Command
 import org.springframework.shell.command.annotation.Option
 
 @IdeaCommandDetection
 @Command(group = COMMAND_GROUP)
 class ValidateCommand(
-    private val resourceLoader: ResourceLoader,
+    private val mongoWayResourceLoader: FileSystemResourceLoader,
     private val changelogProcessor: ChangelogProcessor,
 ) {
 
@@ -46,7 +46,7 @@ class ValidateCommand(
                             processedChangelogs.remove(changelogPath)
                             logError(globalUniqueChangeIdViolationError(changelogPath, changeSet.globalUniqueChangeId))
                         } else {
-                            val changelogResource = resourceLoader.getResource(changelogPath)
+                            val changelogResource = mongoWayResourceLoader.getResource(changelogPath)
                             changelogProcessor.preValidate(changeSet, changelogResource)
                             processedChangeSets.add(changeSet.globalUniqueChangeId)
                             processedChangelogs.add(changelogPath)

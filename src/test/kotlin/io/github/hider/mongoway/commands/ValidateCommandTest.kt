@@ -87,7 +87,7 @@ Validation failed. See the error(s) above for details.
     @Test
     @ExtendWith(OutputCaptureExtension::class)
     fun `duplicated globalUniqueChangeId`(output: CapturedOutput) {
-        val path = "validate/test 01.json"
+        val path = "src/test/resources/validate/test 01.json"
         val ex = assertFailsWith<ChangeValidationException> {
             command.validate(path)
         }
@@ -118,7 +118,7 @@ Validation failed. See the error(s) above for details.
             .atMost(2, TimeUnit.SECONDS)
             .untilAsserted {
                 assertThat(output.out.normalizeLineEndings()).endsWith("""
-[30;41;1m Error [0m Error while processing change log [not exists]: class path resource [not exists] is not readable. Ensure the resource exists.
+[30;41;1m Error [0m Error while processing change log [not exists]: file [${pwd}not exists] is not readable. Ensure the resource exists.
 [30;41;1m Error [0m 1 change log(s) failed out of 1.
 [30;41;1m Error [0m No change sets were processed.
 Validation failed. See the error(s) above for details.
@@ -130,7 +130,7 @@ Validation failed. See the error(s) above for details.
     @Test
     @ExtendWith(OutputCaptureExtension::class)
     fun `forbidden collection name`(output: CapturedOutput) {
-        val path = "update/validation 07.json"
+        val path = "src/test/resources/update/validation 07.json"
         val ex = assertFailsWith<ChangeValidationException> {
             command.validate(path)
         }
@@ -151,7 +151,7 @@ Validation failed. See the error(s) above for details.
     @Test
     @ExtendWith(OutputCaptureExtension::class)
     fun `insertOne successful`(output: CapturedOutput) {
-        command.validate("validate/test 02.json", "validate/test 03.json")
+        command.validate("src/test/resources/validate/test 02.json", "src/test/resources/validate/test 03.json")
         await()
             .atMost(2, TimeUnit.SECONDS)
             .untilAsserted {

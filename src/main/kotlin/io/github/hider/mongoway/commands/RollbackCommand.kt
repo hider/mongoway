@@ -3,7 +3,7 @@ package io.github.hider.mongoway.commands
 import io.github.hider.mongoway.*
 import org.slf4j.LoggerFactory
 import org.springframework.boot.info.BuildProperties
-import org.springframework.core.io.ResourceLoader
+import org.springframework.core.io.FileSystemResourceLoader
 import org.springframework.shell.command.annotation.Command
 import org.springframework.shell.command.annotation.Option
 import java.time.LocalDateTime
@@ -12,7 +12,7 @@ import java.time.LocalDateTime
 @IdeaCommandDetection
 @Command(group = COMMAND_GROUP)
 class RollbackCommand(
-    private val resourceLoader: ResourceLoader,
+    private val mongoWayResourceLoader: FileSystemResourceLoader,
     private val connection: MongoConnection,
     private val changelogProcessor: ChangelogProcessor,
     private val buildProperties: BuildProperties,
@@ -56,7 +56,7 @@ class RollbackCommand(
                 description,
                 null,
             )
-            val changelogPath = resourceLoader.getResource(changelog.executed.path)
+            val changelogPath = mongoWayResourceLoader.getResource(changelog.executed.path)
             val hash = changelogProcessor.preValidate(rollbackChangeSet, changelogPath)
             log.info("changeSet[globalUniqueChangeId={}}] is executing...", rollbackChangeSet.globalUniqueChangeId)
             val collection = db.getCollection(rollbackChangeSet.targetCollection)

@@ -28,7 +28,7 @@ class QueryCommandTest {
     @ExtendWith(OutputCaptureExtension::class)
     fun `query by globalUniqueChangeId`(output: CapturedOutput) {
         val connectionString = testMongo.connectionString + '/' + config.databaseName
-        updateCommand.update(connectionString, "update/insertOne/test02.json")
+        updateCommand.update(connectionString, "src/test/resources/update/insertOne/test02.json")
         command.query(connectionString, "update insertOne 2 2")
 
         await()

@@ -14,6 +14,10 @@ import org.springframework.test.annotation.DirtiesContext
 import org.springframework.test.context.ActiveProfiles
 import org.testcontainers.containers.MongoDBContainer
 import java.util.concurrent.TimeUnit
+import kotlin.io.path.Path
+import kotlin.io.path.absolute
+import kotlin.io.path.invariantSeparatorsPathString
+import kotlin.io.path.pathString
 import kotlin.test.Test
 
 
@@ -67,7 +71,7 @@ class ShellTests {
     fun `rollback not found`(output: CapturedOutput) {
         val connectionString = testMongo.connectionString + "/shell_tests"
         client
-            .nonInterative("update", connectionString, "rollback/test04.json")
+            .nonInterative("update", connectionString, "src/test/resources/rollback/test04.json")
             .run()
         client
             .nonInterative("rollback", connectionString, "rollback 4 1")
@@ -94,6 +98,25 @@ class ShellTests {
             .untilAsserted {
                 assertThat(output.out).endsWith("Change set with globalUniqueChangeId 'noSuchChangeSetId' not found." + System.lineSeparator())
                 assertThat(output.err).isEmpty()
+            }
+    }
+
+    @Test
+    @ExtendWith(OutputCaptureExtension::class)
+    fun `update with absolute path`(output: CapturedOutput) {
+        val connectionString = testMongo.connectionString + "/shell_tests"
+        val changelogPath = Path("src/test/resources/update/insertOne/test02.json").absolute()
+        client
+            .nonInterative("update", connectionString, changelogPath.invariantSeparatorsPathString)
+            .run()
+
+        await()
+            .atMost(2, TimeUnit.SECONDS)
+            .untilAsserted {
+                assertThat(output.out).contains(
+                    "Processing change log file ${changelogPath.pathString}",
+                    "Successfully processed 3 change sets."
+                )
             }
     }
 }

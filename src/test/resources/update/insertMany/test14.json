@@ -1,0 +1,11 @@
+[
+    {
+        "globalUniqueChangeId": "update test 14 1",
+        "author": "test user",
+        "targetCollection": "test_14",
+        "change": {
+            "action": "insertMany",
+            "externalDocumentsPath": "src/test/resources/update/insertMany/ext4.json.bad"
+        }
+    }
+]
