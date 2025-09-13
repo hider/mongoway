@@ -19,6 +19,6 @@ class Config {
     @Bean
     @ServiceConnection
     fun testMongo(): MongoDBContainer {
-        return MongoDBContainer("mongo:8.0.11")
+        return MongoDBContainer("mongo:8.0.13")
     }
 }

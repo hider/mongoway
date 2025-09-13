@@ -2,16 +2,16 @@ plugins {
     val kotlinVersion = "2.1.21"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
-    id("org.springframework.boot") version "3.4.7"
+    id("org.springframework.boot") version "3.5.5"
     id("io.spring.dependency-management") version "1.1.7"
-    id("org.graalvm.buildtools.native") version "0.10.6"
+    id("org.graalvm.buildtools.native") version "0.11.0"
     `java-test-fixtures`
     jacoco
     application
 }
 
 group = "io.github.hider"
-version = "0.0.2"
+version = "0.0.3"
 description = "MongoWay is a Database Change Management Tool for MongoDB"
 
 java {
@@ -30,7 +30,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
     implementation("org.springframework.shell:spring-shell-starter-jni")
     implementation(kotlin("reflect"))
-    implementation("org.mongodb:bson-kotlin:5.4.0")
+    implementation("org.mongodb:bson-kotlin:5.6.0")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.springframework.shell:spring-shell-starter-test")
@@ -44,7 +44,7 @@ dependencies {
 
 dependencyManagement {
     imports {
-        mavenBom("org.springframework.shell:spring-shell-dependencies:3.4.0")
+        mavenBom("org.springframework.shell:spring-shell-dependencies:3.4.1")
     }
 }
 
