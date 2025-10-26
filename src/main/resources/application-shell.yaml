@@ -8,6 +8,8 @@ logging:
         hider:
           mongoway: INFO
     org:
+      mongodb:
+        driver: ERROR
       springframework:
         boot: OFF
         data:

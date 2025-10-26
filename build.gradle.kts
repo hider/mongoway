@@ -1,5 +1,5 @@
 plugins {
-    val kotlinVersion = "2.1.21"
+    val kotlinVersion = "2.2.21"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
     id("org.springframework.boot") version "3.5.7"
@@ -16,7 +16,8 @@ description = "MongoWay is a Database Change Management Tool for MongoDB"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = JavaLanguageVersion.of(24)
+        vendor = JvmVendorSpec.ADOPTIUM
     }
 }
 
@@ -93,6 +94,12 @@ tasks {
         )
     }
 
+    bootJar {
+        manifest {
+            attributes("Enable-Native-Access" to "ALL-UNNAMED")
+        }
+    }
+
     jacocoTestReport {
         reports {
             xml.required = true
@@ -108,6 +115,13 @@ tasks {
 tasks.register<Exec>("dockerBuild") {
     dependsOn(tasks.installDist)
     group = "build"
-    description = "Builds the Docker image for MongoWay"
+    description = "Builds the Docker image for MongoWay with Alpine Linux and Temurin JRE."
     commandLine("docker", "build", "--tag", "ghcr.io/hider/mongoway:${project.version}-alpine", ".")
+}
+
+tasks.register<Exec>("dockerBuildAlpaquita") {
+    dependsOn(tasks.installDist)
+    group = "build"
+    description = "Builds the Docker image for MongoWay with Alpaquita Linux and Liberica JRE."
+    commandLine("docker", "build", "--tag", "ghcr.io/hider/mongoway:${project.version}-alpaquita", "--file", "Alpaquita.Dockerfile", ".")
 }

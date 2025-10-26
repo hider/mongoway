@@ -1,14 +1,12 @@
 package io.github.hider.mongoway.aot
 
+import io.github.hider.mongoway.ChangeAction
 import io.github.hider.mongoway.DatabaseChangelogRepository
-import io.github.hider.mongoway.MongoWayConfiguration
 import org.assertj.core.api.Assertions.assertThat
 import org.springframework.aop.framework.Advised
 import org.springframework.aot.hint.RuntimeHints
-import org.springframework.aot.hint.annotation.RegisterReflection
 import org.springframework.aot.hint.predicate.RuntimeHintsPredicates
 import org.springframework.core.DecoratingProxy
-import org.springframework.core.annotation.AnnotatedElementUtils
 import org.springframework.data.repository.Repository
 import org.springframework.transaction.interceptor.TransactionalProxy
 import kotlin.test.Test
@@ -19,7 +17,7 @@ class AotTests {
     @Test
     fun `aot resources available`() {
         val hints = RuntimeHints()
-        AotRuntimeHints().registerHints(hints, javaClass.getClassLoader())
+        AotRuntimeHints().registerHints(hints, javaClass.classLoader)
         assertThat(
             RuntimeHintsPredicates.proxies().forInterfaces(
                 DatabaseChangelogRepository::class.java,
@@ -30,9 +28,17 @@ class AotTests {
             )
         ).accepts(hints)
 
-        val classes = AnnotatedElementUtils.getMergedAnnotation(AotConfiguration::class.java, RegisterReflection::class.java)!!
-            .classes
+        val actions = ChangeAction::class.sealedSubclasses
+            .flatMap { it.sealedSubclasses + it }
+            .filter { it.isData }
             .map { it.java }
-        assertThat(classes).containsAll(MongoWayConfiguration().sourceTypeMap().keys)
+        assertThat(
+            hints.reflection()
+                .typeHints()
+                .filter { it.type.packageName == "io.github.hider.mongoway" }
+                .map {
+                    Class.forName(it.type.canonicalName)
+                }
+        ).containsAll(actions)
     }
 }

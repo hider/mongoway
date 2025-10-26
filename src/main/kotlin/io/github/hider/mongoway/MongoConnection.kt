@@ -90,10 +90,7 @@ class MongoConnection(
     private fun createConnectionString(connectionString: String): Pair<String, ConnectionString> {
         return if (connectionString.contains("://")) {
             val cs = ConnectionString(connectionString)
-            val dbName = cs.database
-            if (dbName == null) {
-                throw StartupException("Database name is required in the connection string.")
-            }
+            val dbName = cs.database ?: throw StartupException("Database name is required in the connection string.")
             val client = if (cs.applicationName == null) {
                 connectionStringWithCustomAppName(connectionString)
             } else {

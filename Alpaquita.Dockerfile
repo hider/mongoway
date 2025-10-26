@@ -1,4 +1,4 @@
-FROM eclipse-temurin:25-jre-alpine
+FROM ghcr.io/bell-sw/liberica-runtime-container:jre-25-cds-slim-musl
 
 LABEL org.opencontainers.image.title=MongoWay
 LABEL org.opencontainers.image.description="MongoWay is a Database Change Management Tool for MongoDB"

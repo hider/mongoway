@@ -1,0 +1,12 @@
+[
+    {
+        "globalUniqueChangeId": "update deleteMany error 2",
+        "author": "test user",
+        "targetCollection": "deleteMany",
+        "change": {
+            "action": "deleteMany",
+            "filter": {
+            }
+        }
+    }
+]

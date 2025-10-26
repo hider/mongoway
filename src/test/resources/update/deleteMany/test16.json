@@ -1,0 +1,39 @@
+[
+    {
+        "globalUniqueChangeId": "update test 16 1",
+        "author": "test user",
+        "targetCollection": "test_16",
+        "change": {
+            "action": "insertMany",
+            "documents": [
+                {
+                    "key 0": "value 0"
+                },
+                {
+                    "key 1": "value 1"
+                },
+                {
+                    "key 2": "value 2"
+                }
+            ]
+        }
+    },
+    {
+        "globalUniqueChangeId": "update test 16 2",
+        "author": "test user",
+        "targetCollection": "test_16",
+        "change": {
+            "action": "deleteMany",
+            "filter": {
+                "$or": [
+                    {
+                        "key 0": "value 0"
+                    },
+                    {
+                        "key 1": "value 1"
+                    }
+                ]
+            }
+        }
+    }
+]

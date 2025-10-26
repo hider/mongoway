@@ -76,17 +76,22 @@ The first argument is the connection string which should include the database na
 
 ## Supported change actions
 
-- `insertOne`: Insert a single document.
-- `insertMany`: Insert multiple documents.
-- `updateOne`: Update a single document.
-- `updateMany`: Update multiple documents.
-- `deleteOne`: Delete a single document.
-- `createIndex`: Create an index on a collection.
-- `dropIndex`: Drop an index from a collection.
+| Name          | Description                     | Auto rollback   |
+|---------------|---------------------------------|-----------------|
+| `insertOne`   | Insert a single document        | ☑️ Supported    |
+| `insertMany`  | Insert multiple documents       | ☑️ Supported    |
+| `updateOne`   | Update a single document        | ☑️ Supported    |
+| `updateMany`  | Update multiple documents       | ❌ Not supported |
+| `deleteOne`   | Delete a single document        | ☑️ Supported    |
+| `deleteMany`  | Delete a multiple documents     | ❌ Not supported |
+| `createIndex` | Create an index on a collection | ☑️ Supported    |
+| `dropIndex`   | Drop an index from a collection | ☑️ Supported    |
+
+Actions with _auto rollback_ generate rollback change if custom rollback change is not specified.
 
 ## Usage
 
-Ensure Java 21 runtime is available on your system.
+Ensure Java 24 or newer runtime is available on your system.
 Download the latest release archive from the [releases page](https://github.com/hider/mongoway/releases) and extract its contents to a desired directory.
 
 Navigate to the extracted directory and launch MongoWay by executing `bin/mongoway`.
@@ -111,10 +116,11 @@ For Windows paths, use forward slashes (`/`) or double backslashes (`\\`) as dir
 
 ### Container images
 
-MongoWay images are available in two variants:
+MongoWay images are available in three variants:
 
-- `ghcr.io/hider/mongoway:<version>-alpine`: Alpine Linux based with JRE and jar files.
-- `ghcr.io/hider/mongoway:<version>-native`: Native image built with Paketo Buildpacks (experimental).
+- `ghcr.io/hider/mongoway:<version>-alpaquita`: Alpaquita Linux with JRE and jar files.
+- `ghcr.io/hider/mongoway:<version>-alpine`:  Alpine Linux with JRE and jar files.
+- `ghcr.io/hider/mongoway:<version>-native`: Native image built with Paketo Buildpacks.
 
 ## License
 

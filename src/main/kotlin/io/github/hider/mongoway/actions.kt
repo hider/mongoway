@@ -113,8 +113,15 @@ data class InsertMany(
     }
 
     override fun execute(collection: MongoCollection<Document>): ExecutionResult {
-        collection.insertMany(validatedDocuments!!)
-        return ExecutionResult(null)
+        val result = collection.insertMany(validatedDocuments!!)
+        val insertedIds = result.insertedIds
+            .values
+            .reversed()
+        val rollback = DeleteMany(
+            Document(FieldName.ID.name, mapOf($$"$in" to insertedIds)),
+            failWithoutDelete = true,
+        )
+        return ExecutionResult(rollback)
     }
 }
 
@@ -220,6 +227,34 @@ data class DeleteOne(
             )
         }
         return ExecutionResult(rollback)
+    }
+}
+
+data class DeleteMany(
+    /**
+     * The filter to match documents to delete.
+     * It must contain at least one field.
+     */
+    val filter: Document,
+    /**
+     * Fail if no document matched the filter. Default is true.
+     */
+    val failWithoutDelete: Boolean? = null,
+) : ChangeAction {
+
+    override fun validateOrThrow(context: ActionContext, changelogPath: Resource): Hash {
+        if (filter.isEmpty()) {
+            throw ChangeValidationException("filter is required for deleteMany action")
+        }
+        return filter.toHash()
+    }
+
+    override fun execute(collection: MongoCollection<Document>): ExecutionResult {
+        val result = collection.deleteMany(processFilter(filter))
+        if ((failWithoutDelete == null || failWithoutDelete) && result.deletedCount == 0L) {
+            throw ChangeValidationException("no documents matched the filter and change.failWithoutDelete is true (default is true)")
+        }
+        return ExecutionResult(null)
     }
 }
 

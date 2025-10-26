@@ -6,6 +6,7 @@ import org.bson.BsonInvalidOperationException
 import org.bson.Document
 import org.bson.json.JsonParseException
 import org.junit.jupiter.api.assertInstanceOf
+import org.junit.jupiter.api.assertNotNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.testcontainers.containers.MongoDBContainer
@@ -187,7 +188,6 @@ class UpdateCommandTest {
         )
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun `execute insertOne`() {
         val connectionString = testMongo.connectionString + '/' + config.databaseName
@@ -398,15 +398,20 @@ class UpdateCommandTest {
         connection.useDatabase(connectionString) { db, repo ->
             val collection = db.getCollection("test_06")
             assertEquals(9, collection.countDocuments())
+            val ids = mutableListOf<Any>()
             collection.find().forEachIndexed { index, doc ->
                 assertEquals("value $index", doc["key $index"])
+                ids.add(doc["_id"]!!)
             }
-            IntRange(1, 3).forEach { i ->
-                repo.findFirstByChangeSetGlobalUniqueChangeIdOrderByIdDesc("update test 06 $i")
-                    .also { changelog ->
-                        assertNull(changelog?.rollback)
-                    }
+            val rollbackKeys = IntRange(1, 3).flatMap { i ->
+                val changelog = repo.findFirstByChangeSetGlobalUniqueChangeIdOrderByIdDesc("update test 06 $i")
+                val rollbackChange = assertInstanceOf<DeleteMany>(changelog?.rollback?.change)
+                val filter = assertInstanceOf<Map<String, Map<String, List<*>>>>(rollbackChange.filter)
+                val key = filter["_id"]
+                assertNotNull(key)
+                key[$$"$in"]!!
             }
+            assertThat(rollbackKeys).containsExactlyInAnyOrderElementsOf(ids)
         }
     }
 
@@ -564,6 +569,45 @@ class UpdateCommandTest {
     }
 
     @Test
+    fun `execute deleteMany`() {
+        val connectionString = testMongo.connectionString + '/' + config.databaseName
+        val path = "src/test/resources/update/deleteMany/test16.json"
+        command.update(connectionString, path)
+        connection.useDatabase(connectionString) { db, repo ->
+            val collection = db.getCollection("test_16")
+            assertEquals(1, collection.countDocuments())
+        }
+    }
+
+    @Test
+    fun `execute deleteMany without match`() {
+        val connectionString = testMongo.connectionString + '/' + config.databaseName
+        val path = "src/test/resources/update/deleteMany/error01.json"
+        assertFailsWith<ChangeValidationException> {
+            command.update(connectionString, path)
+        }.also {
+            assertEquals(
+                "no documents matched the filter and change.failWithoutDelete is true (default is true)",
+                it.message
+            )
+        }
+    }
+
+    @Test
+    fun `execute deleteMany without filter`() {
+        val connectionString = testMongo.connectionString + '/' + config.databaseName
+        val path = "src/test/resources/update/deleteMany/error02.json"
+        assertFailsWith<ChangeValidationException> {
+            command.update(connectionString, path)
+        }.also {
+            assertEquals(
+                "changeSet[globalUniqueChangeId=update deleteMany error 2] validation error: filter is required for deleteMany action.",
+                it.message
+            )
+        }
+    }
+
+    @Test
     fun `execute createIndex`() {
         val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/createIndex/test09.json"
@@ -669,7 +713,6 @@ class UpdateCommandTest {
             }!!
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     private fun assertHash(
         changelog: DatabaseChangelog,
         expectedHash: String,
