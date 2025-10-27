@@ -77,9 +77,11 @@ graalvmNative {
     }
 }
 
+private val imageBaseName = "ghcr.io/hider/mongoway:${project.version}"
+
 tasks {
     bootBuildImage {
-        imageName = "ghcr.io/hider/mongoway:${project.version}-native"
+        imageName = "${imageBaseName}-native"
         environment.set(
             mapOf(
                 // See Dockerfile and https://paketo.io/docs/howto/configuration/#applying-custom-labels
@@ -112,16 +114,26 @@ tasks {
     }
 }
 
-tasks.register<Exec>("dockerBuild") {
+tasks.register<Exec>("buildImageAlpine") {
     dependsOn(tasks.installDist)
-    group = "build"
+    group = "docker"
     description = "Builds the Docker image for MongoWay with Alpine Linux and Temurin JRE."
-    commandLine("docker", "build", "--tag", "ghcr.io/hider/mongoway:${project.version}-alpine", ".")
+    commandLine("docker", "build", "--tag", "${imageBaseName}-alpine", ".")
 }
 
-tasks.register<Exec>("dockerBuildAlpaquita") {
+tasks.register<Exec>("buildImageAlpaquita") {
     dependsOn(tasks.installDist)
-    group = "build"
+    group = "docker"
     description = "Builds the Docker image for MongoWay with Alpaquita Linux and Liberica JRE."
-    commandLine("docker", "build", "--tag", "ghcr.io/hider/mongoway:${project.version}-alpaquita", "--file", "Alpaquita.Dockerfile", ".")
+    commandLine("docker", "build", "--tag", "${imageBaseName}-alpaquita", "--file", "Alpaquita.Dockerfile", ".")
+}
+
+tasks.register("printGithubActionOutput") {
+    group = "docker"
+    println("version=${project.version}")
+    print("tags=")
+    arrayOf("alpine", "alpaquita").forEach {
+        print("$imageBaseName-$it ")
+    }
+    println()
 }

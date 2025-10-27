@@ -1,0 +1,68 @@
+name: Create release
+
+on:
+  workflow_dispatch:
+    inputs:
+      releaseNotes:
+        description: 'Release notes'
+        required: true
+        default: 'MongoWay zip version. Requires Java 24 or newer.'
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      attestations: write
+      id-token: write
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v5
+      - name: Set up JDK 24
+        uses: actions/setup-java@v4
+        with:
+          java-version: '24'
+          distribution: 'temurin'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+      - name: Build zip and images
+        id: gradle-build
+        run: |
+          ./gradlew distZip buildImageAlpine buildImageAlpaquita bootBuildImage
+          ./gradlew -q printGithubActionOutput >> "$GITHUB_OUTPUT"
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push image to the registry
+        id: push
+        run: |
+          ITER=0
+          for tag in ${{ steps.gradle-build.outputs.tags }}; do
+            docker push $tag
+            docker inspect $tag
+            digest=$(docker inspect --format='{{index .RepoDigests 0}}' $tag)
+            echo "digest$ITER=${digest##*@}" >> "$GITHUB_OUTPUT"
+            ITER=$((ITER + 1))
+          done
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          tag_name: v${{ steps.gradle-build.outputs.version }}
+          name: MongoWay v${{ steps.gradle-build.outputs.version }}
+          body: ${{ inputs.releaseNotes }}
+          files: build/distributions/mongoway-${{ steps.gradle-build.outputs.version }}.zip
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-name: ${{ env.REGISTRY }}/${{ github.repository }}
+          subject-digest: ${{ steps.push.outputs.digest0 }}
+          push-to-registry: true
