@@ -1,18 +1,22 @@
 package io.github.hider.mongoway.commands
 
-import io.github.hider.mongoway.ChangeValidationException
+import io.github.hider.mongoway.errors.ChangeValidationException
 import io.github.hider.mongoway.ChangelogProcessor
-import io.github.hider.mongoway.changelogError
-import io.github.hider.mongoway.globalUniqueChangeIdViolationError
-import org.jline.utils.AttributedStringBuilder
-import org.jline.utils.AttributedStyle
+import io.github.hider.mongoway.errors.changelogError
+import io.github.hider.mongoway.errors.globalUniqueChangeIdViolationError
+import jakarta.validation.constraints.NotBlank
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.FileSystemResourceLoader
-import org.springframework.shell.command.annotation.Command
-import org.springframework.shell.command.annotation.Option
+import org.springframework.shell.core.command.annotation.Argument
+import org.springframework.shell.core.command.annotation.Command
+import org.springframework.stereotype.Component
 
-@IdeaCommandDetection
-@Command(group = COMMAND_GROUP)
+
+private const val DESCRIPTION = "Validates change sets in the change log(s)."
+private const val ANSI_OK = "[30;42;1m  OK   [0m "
+private const val ANSI_ERROR = "[30;41;1m Error [0m "
+
+@Component
 class ValidateCommand(
     private val mongoWayResourceLoader: FileSystemResourceLoader,
     private val changelogProcessor: ChangelogProcessor,
@@ -20,53 +24,53 @@ class ValidateCommand(
 
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    @Command(description = "Validates change sets in the change log.")
+    @Command(
+        group = COMMAND_GROUP,
+        description = DESCRIPTION,
+        help = """$DESCRIPTION
+Usage: validate <changelogPath> [changelogPaths...]
+$PATHS_DESCRIPTION""",
+    )
     fun validate(
-        @Option(
-            required = true,
-            label = "path1 [path2]...",
-            description = PATHS_DESCRIPTION,
-            // 1..127 is a workaround for a Spring Shell bug where arity = CommandRegistration.OptionArity.ONE_OR_MORE results in an integer overflow error
-            arityMin = 1,
-            arityMax = 127,
-        )
+        @NotBlank
+        @Argument(index = 0)
+        changelogPath: String,
+        @RemainingArguments
         vararg changelogPaths: String,
     ) {
-        var error = false
+        val paths = arrayOf(changelogPath, *changelogPaths)
         val processedChangelogs = mutableSetOf<String>()
         val processedChangeSets = mutableSetOf<String>()
         var detectedChangeSets = 0
+        var error = false
         log.info("Started change log validation command...")
         try {
-            changelogProcessor.process(changelogPaths, failFast = false).forEach { (changelogPath, changeSetResult) ->
+            changelogProcessor.process(paths, failFast = false).forEach { (path, changeSetResult) ->
                 detectedChangeSets += 1
                 changeSetResult
                     .onSuccess { changeSet ->
                         if (processedChangeSets.contains(changeSet.globalUniqueChangeId)) {
-                            processedChangelogs.remove(changelogPath)
-                            logError(globalUniqueChangeIdViolationError(changelogPath, changeSet.globalUniqueChangeId))
+                            processedChangelogs.remove(path)
+                            logError(globalUniqueChangeIdViolationError(path, changeSet.globalUniqueChangeId))
                         } else {
-                            val changelogResource = mongoWayResourceLoader.getResource(changelogPath)
+                            val changelogResource = mongoWayResourceLoader.getResource(path)
                             changelogProcessor.preValidate(changeSet, changelogResource)
                             processedChangeSets.add(changeSet.globalUniqueChangeId)
-                            processedChangelogs.add(changelogPath)
+                            processedChangelogs.add(path)
                         }
                     }
                     .onFailure { ex ->
-                        logError(changelogError(changelogPath, ex.message))
+                        logError(changelogError(path, ex.message))
                     }
             }
         } catch (e: ChangeValidationException) {
             logError(e.message)
             error = true
         }
-        if (changelogPaths.isEmpty() && processedChangelogs.isEmpty()) {
-            logError("No change logs were processed.")
-            error = true
-        } else if (processedChangelogs.size == changelogPaths.size) {
+        if (processedChangelogs.size == paths.size) {
             logOk("${processedChangelogs.size} change log(s) processed successfully.")
         } else {
-            logError("${changelogPaths.size - processedChangelogs.size} change log(s) failed out of ${changelogPaths.size}.")
+            logError("${paths.size - processedChangelogs.size} change log(s) failed out of ${paths.size}.")
             error = true
         }
         if (processedChangeSets.isEmpty()) {
@@ -79,28 +83,15 @@ class ValidateCommand(
             logOk("${processedChangeSets.size} change set(s) processed successfully.")
         }
         if (error) {
-            log.error("Validation failed. See the error(s) above for details.")
             throw ChangeValidationException("Validation failed. See the error(s) above for details.")
         }
     }
 
     private fun logOk(message: String) {
-        val formattedText = AttributedStringBuilder()
-            .styled(AttributedStyle.BOLD.background(AttributedStyle.GREEN).foreground(AttributedStyle.BLACK), "  OK   ")
-            .append(" ")
-            .append(message)
-        log.info(formattedText.toAnsi())
+        log.info(ANSI_OK + message)
     }
 
     private fun logError(vararg messages: String?) {
-        val formattedText = AttributedStringBuilder()
-            .styled(AttributedStyle.BOLD.background(AttributedStyle.RED).foreground(AttributedStyle.BLACK), " Error ")
-            .append(" ")
-            .apply {
-                for (it in messages) {
-                    append(it)
-                }
-            }
-        log.error(formattedText.toAnsi())
+        log.error(messages.joinToString("", ANSI_ERROR))
     }
 }

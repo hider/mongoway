@@ -1,16 +1,20 @@
 package io.github.hider.mongoway.commands
 
 import io.github.hider.mongoway.*
+import io.github.hider.mongoway.errors.StartupException
+import jakarta.validation.constraints.NotBlank
 import org.slf4j.LoggerFactory
 import org.springframework.boot.info.BuildProperties
 import org.springframework.core.io.FileSystemResourceLoader
-import org.springframework.shell.command.annotation.Command
-import org.springframework.shell.command.annotation.Option
+import org.springframework.shell.core.command.annotation.Argument
+import org.springframework.shell.core.command.annotation.Command
+import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
 
-@IdeaCommandDetection
-@Command(group = COMMAND_GROUP)
+private const val DESCRIPTION = "Execute change sets in the change log(s) against the database."
+
+@Component
 class RollbackCommand(
     private val mongoWayResourceLoader: FileSystemResourceLoader,
     private val connection: MongoConnection,
@@ -22,10 +26,19 @@ class RollbackCommand(
         .ifBlank { throw StartupException("Username is not available") }
     private val hostname: String? = System.getenv("HOSTNAME") ?: System.getenv("COMPUTERNAME")
 
-    @Command(description = "Rollback change set by globalUniqueChangeId.")
+    @Command(
+        group = COMMAND_GROUP,
+        description = "Rollback change set by globalUniqueChangeId.",
+        help = """$DESCRIPTION
+Usage: rollback <connectionString> <globalUniqueChangeId>
+$CS_DESCRIPTION
+  [1mglobalUniqueChangeId[0m the unique identifier of the change set""",
+    )
     fun rollback(
-        @Option(required = true, description = CS_DESCRIPTION) connectionString: String,
-        @Option(required = true) globalUniqueChangeId: String,
+        @NotBlank
+        @Argument(index = 0) connectionString: String,
+        @NotBlank
+        @Argument(index = 1) globalUniqueChangeId: String,
     ) {
         val now = LocalDateTime.now()
         connection.useDatabase(connectionString) { db, databaseChangelog ->
@@ -66,7 +79,7 @@ class RollbackCommand(
                     Executed(username, now, changelog.executed.path, hostname),
                     rollbackChangeSet,
                     hash,
-                    buildProperties.version,
+                    buildProperties.version ?: "unknown",
                     Rollback(
                         changelog.changeSet.change,
                         changelog.id,

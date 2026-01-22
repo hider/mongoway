@@ -2,6 +2,7 @@ package io.github.hider.mongoway
 
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.model.IndexOptions
+import io.github.hider.mongoway.errors.ChangeValidationException
 import org.bson.Document
 import org.bson.types.Binary
 import org.bson.types.ObjectId

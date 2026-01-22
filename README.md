@@ -66,7 +66,7 @@ Duplicate change sets with the same `globalUniqueChangeId` will be result in an 
 
 Let's execute the change log file using the MongoWay command line tool:
 
-```bash
+```shell
 mongoway update mongodb://dev.mongodb.example.com:27017/dev_app path/to/changelog.json
 ```
 
@@ -91,7 +91,7 @@ Actions with _auto rollback_ generate rollback change if custom rollback change 
 
 ## Usage
 
-Ensure Java 24 or newer runtime is available on your system.
+Ensure Java 25 or newer runtime is available on your system.
 Download the latest release archive from the [releases page](https://github.com/hider/mongoway/releases) and extract its contents to a desired directory.
 
 Navigate to the extracted directory and launch MongoWay by executing `bin/mongoway`.
@@ -102,6 +102,8 @@ Navigate to the extracted directory and launch MongoWay by executing `bin/mongow
 - `rollback <connection string> <globalUniqueChangeId>`: Rollback the change with the specified `globalUniqueChangeId`.
 - `validate <path to change log>...`: Validate the change log(s) for correctness and consistency.
 - `query <connection string> <globalUniqueChangeId>`: Find a change set with the specified `globalUniqueChangeId`.
+
+Use `command --help` to get more information about a specific command.
 
 #### connection string
 
@@ -121,6 +123,17 @@ MongoWay images are available in three variants:
 - `ghcr.io/hider/mongoway:<version>-alpaquita`: Alpaquita Linux with JRE and jar files.
 - `ghcr.io/hider/mongoway:<version>-alpine`:  Alpine Linux with JRE and jar files.
 - `ghcr.io/hider/mongoway:<version>-native`: Native image built with Paketo Buildpacks.
+
+Example usage:
+
+```shell
+docker run --rm -it \
+  --user $(id --user):$(id --group) \
+  --env JAVA_OPTS="-Duser.name=$(id --user --name)" \
+  --volume ${PWD}/path/to/changes:/var/changes:ro \
+  ghcr.io/hider/mongoway:VERSION-alpaquita \
+  update mongodb://host.docker.internal:27017/my_db /var/changes/changelog.json
+```
 
 ## License
 

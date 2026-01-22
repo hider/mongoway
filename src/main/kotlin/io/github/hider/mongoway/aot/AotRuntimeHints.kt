@@ -16,7 +16,7 @@ import org.springframework.transaction.interceptor.TransactionalProxy
  *
  * @see org.springframework.aot.hint.annotation.RegisterReflectionForBindingProcessor
  */
-class AotRuntimeHints() : RuntimeHintsRegistrar {
+class AotRuntimeHints : RuntimeHintsRegistrar {
     private val bindingRegistrar = BindingReflectionHintsRegistrar()
 
     override fun registerHints(hints: RuntimeHints, classLoader: ClassLoader?) {

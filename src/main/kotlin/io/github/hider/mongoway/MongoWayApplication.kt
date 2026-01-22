@@ -1,20 +1,18 @@
 package io.github.hider.mongoway
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.autoconfigure.data.mongo.MongoRepositoriesAutoConfiguration
-import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+import org.springframework.boot.data.mongodb.autoconfigure.DataMongoRepositoriesAutoConfiguration
+import org.springframework.boot.mongodb.autoconfigure.MongoAutoConfiguration
 import org.springframework.boot.runApplication
-import org.springframework.shell.command.annotation.CommandScan
 
 @SpringBootApplication(
     exclude = [
         MongoAutoConfiguration::class,
-        MongoRepositoriesAutoConfiguration::class,
+        DataMongoRepositoriesAutoConfiguration::class,
     ],
 )
-@CommandScan
 class MongoWayApplication
 
 fun main(args: Array<String>) {
-    runApplication<MongoWayApplication>(*args)
+    runApplication<MongoWayApplication>(*args.ifEmpty { arrayOf("help") })
 }

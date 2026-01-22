@@ -1,6 +1,6 @@
 package io.github.hider.mongoway.commands
 
-import io.github.hider.mongoway.ChangeValidationException
+import io.github.hider.mongoway.errors.ChangeValidationException
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.extension.ExtendWith
@@ -9,37 +9,18 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.system.CapturedOutput
 import org.springframework.boot.test.system.OutputCaptureExtension
 import org.springframework.test.context.ActiveProfiles
+import java.nio.file.Path
 import java.util.concurrent.TimeUnit
+import kotlin.io.path.absolutePathString
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 @SpringBootTest
 @ActiveProfiles("shell")
-class ValidateCommandTest {
-
-    @Autowired
-    lateinit var command: ValidateCommand
-
-    @Test
-    @ExtendWith(OutputCaptureExtension::class)
-    fun `missing change log`(output: CapturedOutput) {
-        assertFailsWith<ChangeValidationException> {
-            command.validate()
-        }.also { ex ->
-            assertEquals("Validation failed. See the error(s) above for details.", ex.message)
-        }
-        await()
-            .atMost(2, TimeUnit.SECONDS)
-            .untilAsserted {
-                assertThat(output.out.normalizeLineEndings()).isEqualTo("""Started change log validation command...
-[30;41;1m Error [0m No change logs were processed.
-[30;41;1m Error [0m No change sets were processed.
-Validation failed. See the error(s) above for details.
-"""
-                )
-            }
-    }
+class ValidateCommandTest(
+    @Autowired val command: ValidateCommand
+) {
 
     @Test
     @ExtendWith(OutputCaptureExtension::class)
@@ -51,12 +32,14 @@ Validation failed. See the error(s) above for details.
         await()
             .atMost(2, TimeUnit.SECONDS)
             .untilAsserted {
-                assertThat(output.out.normalizeLineEndings()).isEqualTo("""Started change log validation command...
-[30;41;1m Error [0m Error while processing change log []: path must not be blank at index 1.
-[30;41;1m Error [0m 1 change log(s) failed out of 1.
-[30;41;1m Error [0m No change sets were processed.
-Validation failed. See the error(s) above for details.
-"""
+                assertThat(output.out.lines()).isEqualTo(
+                    listOf(
+                        "Started change log validation command...",
+                        "[30;41;1m Error [0m Error while processing change log []: path must not be blank at index 1.",
+                        "[30;41;1m Error [0m 1 change log(s) failed out of 1.",
+                        "[30;41;1m Error [0m No change sets were processed.",
+                        ""
+                    )
                 )
             }
     }
@@ -71,15 +54,17 @@ Validation failed. See the error(s) above for details.
         await()
             .atMost(2, TimeUnit.SECONDS)
             .untilAsserted {
-                assertThat(output.out.normalizeLineEndings()).isEqualTo("""Started change log validation command...
-[30;41;1m Error [0m Error while processing change log [ ]: path must not be blank at index 1.
-[30;41;1m Error [0m Error while processing change log [ 	]: path must not be blank at index 2.
-[30;41;1m Error [0m Error while processing change log [
-]: path must not be blank at index 3.
-[30;41;1m Error [0m 3 change log(s) failed out of 3.
-[30;41;1m Error [0m No change sets were processed.
-Validation failed. See the error(s) above for details.
-"""
+                assertThat(output.out.lines()).isEqualTo(
+                    listOf(
+                        "Started change log validation command...",
+                        "[30;41;1m Error [0m Error while processing change log [ ]: path must not be blank at index 1.",
+                        "[30;41;1m Error [0m Error while processing change log [ 	]: path must not be blank at index 2.",
+                        "[30;41;1m Error [0m Error while processing change log [",
+                        "]: path must not be blank at index 3.",
+                        "[30;41;1m Error [0m 3 change log(s) failed out of 3.",
+                        "[30;41;1m Error [0m No change sets were processed.",
+                        "",
+                    )
                 )
             }
     }
@@ -92,16 +77,20 @@ Validation failed. See the error(s) above for details.
             command.validate(path)
         }
         assertEquals("Validation failed. See the error(s) above for details.", ex.message)
+        val absolutePath = Path.of(path).absolutePathString()
         await()
             .atMost(2, TimeUnit.SECONDS)
             .untilAsserted {
-                assertThat(output.out.normalizeLineEndings()).endsWith("""
-[30;41;1m Error [0m Error while processing change log [$path]: globalUniqueChangeId 'id 1' is found multiple times, but globalUniqueChangeId should be unique across change sets.
-[30;41;1m Error [0m Error while processing change log [$path]: globalUniqueChangeId 'id 1' is found multiple times, but globalUniqueChangeId should be unique across change sets.
-[30;41;1m Error [0m 1 change log(s) failed out of 1.
-[30;41;1m Error [0m 2 change set(s) failed out of 3.
-Validation failed. See the error(s) above for details.
-"""
+                assertThat(output.out.lines()).isEqualTo(
+                    listOf(
+                        "Started change log validation command...",
+                        "Processing change log file $absolutePath",
+                        "[30;41;1m Error [0m Error while processing change log [$path]: globalUniqueChangeId 'id 1' is found multiple times, but globalUniqueChangeId should be unique across change sets.",
+                        "[30;41;1m Error [0m Error while processing change log [$path]: globalUniqueChangeId 'id 1' is found multiple times, but globalUniqueChangeId should be unique across change sets.",
+                        "[30;41;1m Error [0m 1 change log(s) failed out of 1.",
+                        "[30;41;1m Error [0m 2 change set(s) failed out of 3.",
+                        "",
+                    )
                 )
             }
     }
@@ -117,12 +106,14 @@ Validation failed. See the error(s) above for details.
         await()
             .atMost(2, TimeUnit.SECONDS)
             .untilAsserted {
-                assertThat(output.out.normalizeLineEndings()).endsWith("""
-[30;41;1m Error [0m Error while processing change log [not exists]: file [${pwd}not exists] is not readable. Ensure the resource exists.
-[30;41;1m Error [0m 1 change log(s) failed out of 1.
-[30;41;1m Error [0m No change sets were processed.
-Validation failed. See the error(s) above for details.
-"""
+                assertThat(output.out.lines()).isEqualTo(
+                    listOf(
+                        "Started change log validation command...",
+                        "[30;41;1m Error [0m Error while processing change log [not exists]: file [${pwd}not exists] is not readable. Ensure the resource exists.",
+                        "[30;41;1m Error [0m 1 change log(s) failed out of 1.",
+                        "[30;41;1m Error [0m No change sets were processed.",
+                        "",
+                    )
                 )
             }
     }
@@ -135,15 +126,19 @@ Validation failed. See the error(s) above for details.
             command.validate(path)
         }
         assertEquals("Validation failed. See the error(s) above for details.", ex.message)
+        val absolutePath = Path.of(path).absolutePathString()
         await()
             .atMost(2, TimeUnit.SECONDS)
             .untilAsserted {
-                assertThat(output.out.normalizeLineEndings()).endsWith("""
-[30;41;1m Error [0m changeSet[globalUniqueChangeId=globalUniqueChangeId 1].targetCollection must not be 'database_changelog'.
-[30;41;1m Error [0m 1 change log(s) failed out of 1.
-[30;41;1m Error [0m No change sets were processed.
-Validation failed. See the error(s) above for details.
-"""
+                assertThat(output.out.lines()).isEqualTo(
+                    listOf(
+                        "Started change log validation command...",
+                        "Processing change log file $absolutePath",
+                        "[30;41;1m Error [0m changeSet[globalUniqueChangeId=globalUniqueChangeId 1].targetCollection must not be 'database_changelog'.",
+                        "[30;41;1m Error [0m 1 change log(s) failed out of 1.",
+                        "[30;41;1m Error [0m No change sets were processed.",
+                        "",
+                    )
                 )
             }
     }

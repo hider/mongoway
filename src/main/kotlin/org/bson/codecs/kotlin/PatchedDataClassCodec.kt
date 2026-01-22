@@ -50,6 +50,7 @@ import org.bson.codecs.pojo.annotations.BsonRepresentation
 import org.bson.diagnostics.Loggers
 import kotlin.collections.get
 
+@io.github.hider.mongoway.Workaround
 internal data class PatchedDataClassCodec<T : Any>(
     private val kClass: KClass<T>,
     private val primaryConstructor: KFunction<T>,

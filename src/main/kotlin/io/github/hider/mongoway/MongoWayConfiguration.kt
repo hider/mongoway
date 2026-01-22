@@ -13,6 +13,10 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.core.io.FileSystemResourceLoader
 import org.springframework.core.io.Resource
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions
+import org.springframework.shell.core.command.CommandParser
+import org.springframework.shell.core.command.CommandRegistry
+import org.springframework.shell.core.command.DefaultCommandParser
+import org.springframework.shell.core.command.ParsedInput
 import java.lang.reflect.Type
 
 
@@ -54,6 +58,32 @@ class MongoWayConfiguration {
         }
     }
 
+    @Workaround
+    @Bean
+    fun mongoWayCommandParser(commandRegistry: CommandRegistry): CommandParser {
+        val mongoWayCommands = setOf(
+            "query",
+            "rollback",
+            "update",
+            "validate",
+        )
+        val commandSplitter = "\\s+(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)".toRegex()
+        return object : DefaultCommandParser(commandRegistry) {
+            override fun parse(input: String): ParsedInput {
+                val words = input.split(commandSplitter)
+                // https://docs.spring.io/spring-shell/reference/commands/syntax.html#_parsing_rules
+                if (words.size > 1 && words[0] in mongoWayCommands) {
+                    return words.joinToString(" ") {
+                        if (it == "-") "\"$it\"" else it
+                    }.let {
+                        super.parse(it)
+                    }
+                }
+                return super.parse(input)
+            }
+        }
+    }
+
     private fun createChangeActionCodecProvider(sourceTypeMap: Map<Class<out ChangeAction>, String>): CodecProvider {
         val sealedClassModel =
             ClassModel.builder(ChangeAction::class.java)
@@ -75,6 +105,7 @@ class MongoWayConfiguration {
     }
 }
 
+@Workaround
 private class PatchedDataClassCodecProvider : CodecProvider {
     override fun <T : Any> get(clazz: Class<T>, registry: CodecRegistry): Codec<T>? = get(clazz, emptyList(), registry)
 
