@@ -13,6 +13,10 @@ import org.springframework.context.annotation.Configuration
 import org.springframework.core.io.FileSystemResourceLoader
 import org.springframework.core.io.Resource
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions
+import org.springframework.shell.core.command.CommandParser
+import org.springframework.shell.core.command.CommandRegistry
+import org.springframework.shell.core.command.DefaultCommandParser
+import org.springframework.shell.core.command.ParsedInput
 import java.lang.reflect.Type
 
 
@@ -54,6 +58,52 @@ class MongoWayConfiguration {
         }
     }
 
+    @Bean
+    fun env() = Env(
+        System.getProperty("user.name").blankToNull() ?: "??",
+        System.getenv("HOSTNAME").blankToNull()
+            ?: System.getenv("COMPUTERNAME").blankToNull()
+            ?: Runtime.getRuntime()
+                .runCatching {
+                    exec(arrayOf("hostname"))
+                }
+                .map { process ->
+                    process.inputReader().use {
+                        it.readLine().ifBlank { null }
+                    }
+                }
+                .onFailure {
+                    System.err.println("Unable to determine system hostname")
+                }
+                .getOrNull()
+    )
+
+    @Workaround
+    @Bean
+    fun mongoWayCommandParser(commandRegistry: CommandRegistry): CommandParser {
+        val mongoWayCommands = setOf(
+            "query",
+            "rollback",
+            "update",
+            "validate",
+        )
+        val commandSplitter = "\\s+(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)".toRegex()
+        return object : DefaultCommandParser(commandRegistry) {
+            override fun parse(input: String): ParsedInput {
+                val words = input.split(commandSplitter)
+                // https://docs.spring.io/spring-shell/reference/commands/syntax.html#_parsing_rules
+                if (words.size > 1 && words[0] in mongoWayCommands) {
+                    return words.joinToString(" ") {
+                        if (it == "-") "\"$it\"" else it
+                    }.let {
+                        super.parse(it)
+                    }
+                }
+                return super.parse(input)
+            }
+        }
+    }
+
     private fun createChangeActionCodecProvider(sourceTypeMap: Map<Class<out ChangeAction>, String>): CodecProvider {
         val sealedClassModel =
             ClassModel.builder(ChangeAction::class.java)
@@ -73,11 +123,19 @@ class MongoWayConfiguration {
             .register(*actionModels)
             .build()
     }
-}
 
-private class PatchedDataClassCodecProvider : CodecProvider {
-    override fun <T : Any> get(clazz: Class<T>, registry: CodecRegistry): Codec<T>? = get(clazz, emptyList(), registry)
+    data class Env(
+        val username: String,
+        val hostname: String?,
+    )
 
-    override fun <T : Any> get(clazz: Class<T>, typeArguments: List<Type>, registry: CodecRegistry): Codec<T>? =
-        PatchedDataClassCodec.create(clazz.kotlin, registry, typeArguments)
+    @Workaround
+    private class PatchedDataClassCodecProvider : CodecProvider {
+        override fun <T : Any> get(clazz: Class<T>, registry: CodecRegistry): Codec<T>? = get(clazz, emptyList(), registry)
+
+        override fun <T : Any> get(clazz: Class<T>, typeArguments: List<Type>, registry: CodecRegistry): Codec<T>? =
+            PatchedDataClassCodec.create(clazz.kotlin, registry, typeArguments)
+    }
+
+    private fun String?.blankToNull(): String? = if (isNullOrBlank()) null else this
 }

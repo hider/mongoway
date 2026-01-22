@@ -6,26 +6,21 @@ import org.bson.Document
 import org.bson.types.ObjectId
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.testcontainers.containers.MongoDBContainer
+import org.testcontainers.mongodb.MongoDBContainer
 import kotlin.test.*
 
 @SpringBootTest(classes = [Config::class])
-class RollbackCommandTest {
-
-    @Autowired
-    lateinit var testMongo: MongoDBContainer
-    @Autowired
-    lateinit var updateCommand: UpdateCommand
-    @Autowired
-    lateinit var command: RollbackCommand
-    @Autowired
-    lateinit var config: Config
-    @Autowired
-    lateinit var connection: MongoConnection
+class RollbackCommandTest(
+    @Autowired testMongo: MongoDBContainer,
+    @Autowired config: Config,
+    @Autowired val updateCommand: UpdateCommand,
+    @Autowired val command: RollbackCommand,
+    @Autowired val connection: MongoConnection,
+) {
+    val connectionString = testMongo.connectionString + '/' + config.databaseName
 
     @Test
     fun `insertOne rollback`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         updateCommand.update(connectionString, "src/test/resources/rollback/test02.json")
         connection.useDatabase(connectionString) { db, repo ->
             val firstInsertedId = db.getCollection("rollback_documents")
@@ -64,7 +59,6 @@ class RollbackCommandTest {
 
     @Test
     fun `insertOne rollback error`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         updateCommand.update(connectionString, "src/test/resources/rollback/test01.json")
         val globalUniqueChangeId = "rollback 1 1"
         command.rollback(connectionString, globalUniqueChangeId)
@@ -77,7 +71,6 @@ class RollbackCommandTest {
 
     @Test
     fun `insertOne rollback with description`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         updateCommand.update(connectionString, "src/test/resources/rollback/test03.json")
         connection.useDatabase(connectionString) { db, repo ->
             val firstInsertedId = db.getCollection("rollback_documents")
@@ -113,10 +106,9 @@ class RollbackCommandTest {
 
     @Test
     fun `updateMany with external file rollback`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         updateCommand.update(connectionString, "src/test/resources/rollback/test05.json")
         command.rollback(connectionString, "rollback 5 2")
-        connection.useDatabase(connectionString) { db, repo ->
+        connection.useDatabase(connectionString) { db, _ ->
             val documents =  db.getCollection("rollback_documents")
                 .find(Document(mapOf("documentId" to "rollback 5 1")))
             assertThat(documents).satisfiesExactly(

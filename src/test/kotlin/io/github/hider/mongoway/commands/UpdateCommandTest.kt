@@ -1,32 +1,26 @@
 package io.github.hider.mongoway.commands
 
 import io.github.hider.mongoway.*
+import io.github.hider.mongoway.errors.ChangeValidationException
+import io.github.hider.mongoway.errors.StartupException
 import org.assertj.core.api.Assertions.assertThat
 import org.bson.BsonInvalidOperationException
 import org.bson.Document
 import org.bson.json.JsonParseException
-import org.junit.jupiter.api.assertInstanceOf
-import org.junit.jupiter.api.assertNotNull
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.testcontainers.containers.MongoDBContainer
+import org.testcontainers.mongodb.MongoDBContainer
 import java.lang.reflect.InvocationTargetException
 import kotlin.test.*
 
 @SpringBootTest(classes = [Config::class])
-class UpdateCommandTest {
-
-    @Autowired
-    lateinit var testMongo: MongoDBContainer
-
-    @Autowired
-    lateinit var command: UpdateCommand
-
-    @Autowired
-    lateinit var config: Config
-
-    @Autowired
-    lateinit var connection: MongoConnection
+class UpdateCommandTest(
+    @Autowired testMongo: MongoDBContainer,
+    @Autowired config: Config,
+    @Autowired val connection: MongoConnection,
+    @Autowired val command: UpdateCommand,
+) {
+    val connectionString = testMongo.connectionString + '/' + config.databaseName
 
     @Test
     fun `database name is missing from the connection string`() {
@@ -38,7 +32,6 @@ class UpdateCommandTest {
 
     @Test
     fun `invalid change log file`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val ex = assertFailsWith<ChangeValidationException> {
             command.update(connectionString, "not exists")
         }
@@ -50,7 +43,6 @@ class UpdateCommandTest {
 
     @Test
     fun `change log is not an array`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/test-parse-error 1.json"
         val ex = assertFailsWith<ChangeValidationException> {
             command.update(connectionString, path)
@@ -64,7 +56,6 @@ class UpdateCommandTest {
 
     @Test
     fun `change set has missing property`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/test parse error 2.json"
         assertFailsWith<ChangeValidationException> {
             command.update(connectionString, path)
@@ -82,7 +73,6 @@ class UpdateCommandTest {
 
     @Test
     fun `change set type error`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/test parse error 3.json"
         assertFailsWith<ChangeValidationException> {
             command.update(connectionString, path)
@@ -100,7 +90,6 @@ class UpdateCommandTest {
 
     @Test
     fun `forbidden collection name`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         assertFailsWith<ChangeValidationException> {
             command.update(connectionString, "src/test/resources/update/validation 07.json")
         }.also {ex ->
@@ -113,8 +102,6 @@ class UpdateCommandTest {
 
     @Test
     fun `single document validation`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
-
         assertFailsWith<ChangeValidationException> {
             command.update(connectionString, "src/test/resources/update/validation 01.json")
         }.also { ex ->
@@ -145,8 +132,6 @@ class UpdateCommandTest {
 
     @Test
     fun `multiple documents validation`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
-
         assertFailsWith<ChangeValidationException> {
             command.update(connectionString, "src/test/resources/update/validation 04.json")
         }.also { ex ->
@@ -177,7 +162,6 @@ class UpdateCommandTest {
 
     @Test
     fun `duplicated globalUniqueChangeId`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/test04.json"
         val ex = assertFailsWith<ChangeValidationException> {
             command.update(connectionString, path)
@@ -190,7 +174,6 @@ class UpdateCommandTest {
 
     @Test
     fun `execute insertOne`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/insertOne/test02.json"
         command.update(connectionString, path)
         connection.useDatabase(connectionString) { db, repo ->
@@ -235,7 +218,6 @@ class UpdateCommandTest {
 
     @Test
     fun `insertOne external file`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/insertOne/test03.json"
         command.update(connectionString, path)
         connection.useDatabase(connectionString) { db, repo ->
@@ -256,7 +238,6 @@ class UpdateCommandTest {
 
     @Test
     fun `insertOne external file run twice`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/insertOne/test03.json"
         command.update(connectionString, path)
         command.update(connectionString, path)
@@ -270,7 +251,6 @@ class UpdateCommandTest {
 
     @Test
     fun `insertOne non-relative external file`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/insertOne/test04.json"
         command.update(connectionString, path)
         connection.useDatabase(connectionString) { db, repo ->
@@ -286,10 +266,9 @@ class UpdateCommandTest {
 
     @Test
     fun `execute insertOne run onChange`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         command.update(connectionString, "src/test/resources/update/insertOne/test02.json")
         command.update(connectionString, "src/test/resources/update/insertOne/test02 2.json")
-        connection.useDatabase(connectionString) { db, repo ->
+        connection.useDatabase(connectionString) { db, _ ->
             val collection = db.getCollection("test_02")
             val all = collection.find()
             assertThat(all).hasSize(4)
@@ -298,11 +277,10 @@ class UpdateCommandTest {
 
     @Test
     fun `execute insertOne run always`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/insertOne/test11.json"
         command.update(connectionString, path)
         command.update(connectionString, path)
-        connection.useDatabase(connectionString) { db, repo ->
+        connection.useDatabase(connectionString) { db, _ ->
             val collection = db.getCollection("test_11")
             val all = collection.find()
             assertThat(all).hasSize(2)
@@ -311,14 +289,13 @@ class UpdateCommandTest {
 
     @Test
     fun `execute insertOne not expected change`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         command.update(connectionString, "src/test/resources/update/insertOne/test02.json")
         assertFailsWith<ChangeValidationException> {
             command.update(connectionString, "src/test/resources/update/insertOne/test02 3.json")
         }.also {
             assertThat(it.message).endsWith(" by ${System.getProperty("user.name")} with different content but this change set is not re-runnable (change.run.onChange property is unset or false).")
         }
-        connection.useDatabase(connectionString) { db, repo ->
+        connection.useDatabase(connectionString) { db, _ ->
             val collection = db.getCollection("test_02")
             val all = collection.find()
             assertThat(all).hasSize(3)
@@ -327,7 +304,6 @@ class UpdateCommandTest {
 
     @Test
     fun `execute updateOne`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/updateOne/test05.json"
         command.update(connectionString, path)
         connection.useDatabase(connectionString) { db, repo ->
@@ -357,7 +333,6 @@ class UpdateCommandTest {
 
     @Test
     fun `execute updateOne without match`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/updateOne/test05 2.json"
         assertFailsWith<ChangeValidationException> {
             command.update(connectionString, path)
@@ -371,7 +346,6 @@ class UpdateCommandTest {
 
     @Test
     fun `execute updateOne without filter`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/updateOne/test05 3.json"
         assertFailsWith<ChangeValidationException> {
             command.update(connectionString, path)
@@ -385,14 +359,12 @@ class UpdateCommandTest {
 
     @Test
     fun `execute updateOne with converted ObjectId filter`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/updateOne/test12.json"
         command.update(connectionString, path)
     }
 
     @Test
     fun `execute insertMany`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/insertMany/test06.json"
         command.update(connectionString, path)
         connection.useDatabase(connectionString) { db, repo ->
@@ -401,15 +373,14 @@ class UpdateCommandTest {
             val ids = mutableListOf<Any>()
             collection.find().forEachIndexed { index, doc ->
                 assertEquals("value $index", doc["key $index"])
-                ids.add(doc["_id"]!!)
+                val id = assertNotNull(doc["_id"])
+                ids.add(id)
             }
             val rollbackKeys = IntRange(1, 3).flatMap { i ->
                 val changelog = repo.findFirstByChangeSetGlobalUniqueChangeIdOrderByIdDesc("update test 06 $i")
-                val rollbackChange = assertInstanceOf<DeleteMany>(changelog?.rollback?.change)
-                val filter = assertInstanceOf<Map<String, Map<String, List<*>>>>(rollbackChange.filter)
-                val key = filter["_id"]
-                assertNotNull(key)
-                key[$$"$in"]!!
+                val rollbackChange = assertIs<DeleteMany>(changelog?.rollback?.change)
+                val filter = assertIs<Map<String, Map<String, List<*>>>>(rollbackChange.filter)
+                assertNotNull(filter["_id"]?.get($$"$in"))
             }
             assertThat(rollbackKeys).containsExactlyInAnyOrderElementsOf(ids)
         }
@@ -417,7 +388,6 @@ class UpdateCommandTest {
 
     @Test
     fun `execute insertMany error`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/insertMany/error01.json"
         assertFailsWith<ChangeValidationException> {
             command.update(connectionString, path)
@@ -431,7 +401,6 @@ class UpdateCommandTest {
 
     @Test
     fun `insertMany fails with invalid external files`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         assertFailsWith<ChangeValidationException> {
             command.update(connectionString, "src/test/resources/update/insertMany/test13.json")
         }.also {
@@ -439,7 +408,7 @@ class UpdateCommandTest {
                 "changeSet[globalUniqueChangeId=update test 13 1] validation error: external document [src/test/resources/update/insertMany/ext3.json] should be a JSON array.",
                 it.message
             )
-            assertInstanceOf<BsonInvalidOperationException>(it.cause?.cause?.cause)
+            assertIs<BsonInvalidOperationException>(it.cause?.cause?.cause)
         }
 
         assertFailsWith<ChangeValidationException> {
@@ -449,7 +418,7 @@ class UpdateCommandTest {
                 "changeSet[globalUniqueChangeId=update test 14 1] validation error: external document [src/test/resources/update/insertMany/ext4.json.bad] should be a JSON array.",
                 it.message
             )
-            assertInstanceOf<JsonParseException>(it.cause?.cause?.cause)
+            assertIs<JsonParseException>(it.cause?.cause?.cause)
         }
 
         assertFailsWith<ChangeValidationException> {
@@ -464,7 +433,6 @@ class UpdateCommandTest {
 
     @Test
     fun `execute updateMany`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/updateMany/test07.json"
         command.update(connectionString, path)
         connection.useDatabase(connectionString) { db, repo ->
@@ -484,7 +452,6 @@ class UpdateCommandTest {
 
     @Test
     fun `execute updateMany without match`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/updateMany/error01.json"
         assertFailsWith<ChangeValidationException> {
             command.update(connectionString, path)
@@ -498,7 +465,6 @@ class UpdateCommandTest {
 
     @Test
     fun `execute updateMany without filter`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/updateMany/error02.json"
         assertFailsWith<ChangeValidationException> {
             command.update(connectionString, path)
@@ -512,7 +478,6 @@ class UpdateCommandTest {
 
     @Test
     fun `execute updateMany count mismatch`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/updateMany/error03.json"
         assertFailsWith<ChangeValidationException> {
             command.update(connectionString, path)
@@ -526,7 +491,6 @@ class UpdateCommandTest {
 
     @Test
     fun `execute deleteOne`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/deleteOne/test08.json"
         command.update(connectionString, path)
         connection.useDatabase(connectionString) { db, repo ->
@@ -542,7 +506,6 @@ class UpdateCommandTest {
 
     @Test
     fun `execute deleteOne without match`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/deleteOne/error01.json"
         assertFailsWith<ChangeValidationException> {
             command.update(connectionString, path)
@@ -556,7 +519,6 @@ class UpdateCommandTest {
 
     @Test
     fun `execute deleteOne without filter`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/deleteOne/error02.json"
         assertFailsWith<ChangeValidationException> {
             command.update(connectionString, path)
@@ -570,10 +532,9 @@ class UpdateCommandTest {
 
     @Test
     fun `execute deleteMany`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/deleteMany/test16.json"
         command.update(connectionString, path)
-        connection.useDatabase(connectionString) { db, repo ->
+        connection.useDatabase(connectionString) { db, _ ->
             val collection = db.getCollection("test_16")
             assertEquals(1, collection.countDocuments())
         }
@@ -581,7 +542,6 @@ class UpdateCommandTest {
 
     @Test
     fun `execute deleteMany without match`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/deleteMany/error01.json"
         assertFailsWith<ChangeValidationException> {
             command.update(connectionString, path)
@@ -595,7 +555,6 @@ class UpdateCommandTest {
 
     @Test
     fun `execute deleteMany without filter`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/deleteMany/error02.json"
         assertFailsWith<ChangeValidationException> {
             command.update(connectionString, path)
@@ -609,7 +568,6 @@ class UpdateCommandTest {
 
     @Test
     fun `execute createIndex`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/createIndex/test09.json"
         command.update(connectionString, path)
         connection.useDatabase(connectionString) { db, repo ->
@@ -638,7 +596,6 @@ class UpdateCommandTest {
 
     @Test
     fun `execute createIndex without keys`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/createIndex/error01.json"
         assertFailsWith<ChangeValidationException> {
             command.update(connectionString, path)
@@ -652,7 +609,6 @@ class UpdateCommandTest {
 
     @Test
     fun `execute dropIndex`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         val path = "src/test/resources/update/dropIndex/test10.json"
         command.update(connectionString, path)
         connection.useDatabase(connectionString) { db, repo ->
@@ -671,7 +627,6 @@ class UpdateCommandTest {
 
     @Test
     fun `execute dropIndex validation error`() {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         assertFailsWith<ChangeValidationException> {
             command.update(connectionString, "src/test/resources/update/dropIndex/error01.json")
         }.also {
@@ -699,9 +654,8 @@ class UpdateCommandTest {
     }
 
     private fun assertRollback(repo: DatabaseChangelogRepository, globalUniqueChangeId: String, rollback: ChangeAction?): DatabaseChangelog {
-        return repo.findFirstByChangeSetGlobalUniqueChangeIdOrderByIdDesc(globalUniqueChangeId)
+        return assertNotNull(repo.findFirstByChangeSetGlobalUniqueChangeIdOrderByIdDesc(globalUniqueChangeId))
             .also { changelog ->
-                assertNotNull(changelog)
                 if (rollback == null) {
                     assertNull(changelog.rollback)
                 } else {
@@ -710,7 +664,7 @@ class UpdateCommandTest {
                         changelog.rollback
                     )
                 }
-            }!!
+            }
     }
 
     private fun assertHash(

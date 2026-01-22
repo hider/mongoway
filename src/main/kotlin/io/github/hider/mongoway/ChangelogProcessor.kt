@@ -1,5 +1,8 @@
 package io.github.hider.mongoway
 
+import io.github.hider.mongoway.errors.ChangeValidationException
+import io.github.hider.mongoway.errors.changelogError
+import io.github.hider.mongoway.errors.handleParseError
 import org.bson.BsonInvalidOperationException
 import org.bson.BsonType
 import org.bson.codecs.DecoderContext
@@ -7,9 +10,7 @@ import org.bson.codecs.configuration.CodecConfigurationException
 import org.bson.codecs.configuration.CodecRegistry
 import org.bson.json.JsonParseException
 import org.bson.json.JsonReader
-import org.jline.terminal.Terminal
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.ObjectProvider
 import org.springframework.core.io.FileSystemResourceLoader
 import org.springframework.core.io.Resource
 import org.springframework.stereotype.Component
@@ -19,25 +20,21 @@ import java.io.Reader
 class ChangelogProcessor(
     private val mongoWayResourceLoader: FileSystemResourceLoader,
     private val customCodecRegistry: CodecRegistry,
-    private val terminalProvider: ObjectProvider<Terminal>,
     private val actionContext: ActionContext,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
-    fun process(paths: Array<out String>, failFast: Boolean): Sequence<Pair<String, Result<ChangeSet>>> {
+    fun process(paths: Array<out String>, failFast: Boolean): Sequence<ProcessedChangeSet> {
         return if (paths.size == 1 && paths.first() == "-") {
             fromStdinToSequence()
         } else {
             paths.asResourceSequence()
         }
             .onEach {
-                if (failFast && it.second.isFailure) {
-                    val cause = it.second
-                        .exceptionOrNull()
-                        ?.message
+                if (failFast) it.result.onFailure { ex ->
                     throw ChangeValidationException(
-                        changelogError(it.first, cause),
-                        it.second.exceptionOrNull(),
+                        changelogError(it.path, ex.message),
+                        ex,
                     )
                 }
             }
@@ -60,10 +57,9 @@ class ChangelogProcessor(
     private fun fromStdinToSequence() = sequence {
         log.info("Reading change log from standard input...")
         val path = System.getProperty("user.dir")
-        terminalProvider.`object`
-            .reader()
+        System.`in`.bufferedReader()
             .use { reader ->
-                yieldAll(reader.readChanges().map { Pair(path, it) })
+                yieldAll(reader.readChanges().map { ProcessedChangeSet(path, it) })
             }
     }
 
@@ -71,7 +67,7 @@ class ChangelogProcessor(
         for ((idx, path) in this@asResourceSequence.withIndex()) {
             if (path.isBlank()) {
                 yield(
-                    Pair(
+                    ProcessedChangeSet(
                         path,
                         Result.failure(ChangeValidationException("Path must not be blank at index ${idx + 1}."))
                     )
@@ -81,7 +77,7 @@ class ChangelogProcessor(
             val changelog = mongoWayResourceLoader.getResource(path)
             if (!changelog.isReadable) {
                 yield(
-                    Pair(
+                    ProcessedChangeSet(
                         path,
                         Result.failure(ChangeValidationException("$changelog is not readable. Ensure the resource exists."))
                     )
@@ -96,7 +92,7 @@ class ChangelogProcessor(
             changelog.inputStream
                 .bufferedReader()
                 .use { reader ->
-                    yieldAll(reader.readChanges().map { Pair(path, it) })
+                    yieldAll(reader.readChanges().map { ProcessedChangeSet(path, it) })
                 }
         }
     }
@@ -130,4 +126,9 @@ class ChangelogProcessor(
         }
         reader.readEndArray()
     }
+
+    data class ProcessedChangeSet(
+        val path: String,
+        val result: Result<ChangeSet>,
+    )
 }

@@ -1,23 +1,22 @@
 plugins {
-    val kotlinVersion = "2.2.21"
+    val kotlinVersion = "2.3.0"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
-    id("org.springframework.boot") version "3.5.7"
+    id("org.springframework.boot") version "4.0.2"
     id("io.spring.dependency-management") version "1.1.7"
-    id("org.graalvm.buildtools.native") version "0.11.2"
+    id("org.graalvm.buildtools.native") version "0.11.4"
     `java-test-fixtures`
     jacoco
     application
 }
 
 group = "io.github.hider"
-version = "0.0.3"
+version = "0.1.0"
 description = "MongoWay is a Database Change Management Tool for MongoDB"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(24)
-        vendor = JvmVendorSpec.ADOPTIUM
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
@@ -25,27 +24,27 @@ repositories {
     mavenCentral()
 }
 
-val mockitoAgent = configurations.create("mockitoAgent")
+private val mockitoAgent: Configuration by configurations.creating
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
-    implementation("org.springframework.shell:spring-shell-starter-jni")
     implementation(kotlin("reflect"))
-    implementation("org.mongodb:bson-kotlin:5.6.0")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
+    implementation("org.springframework.shell:spring-shell-starter")
+    implementation("org.mongodb:bson-kotlin:5.6.2")
+
+    testImplementation("org.springframework.boot:spring-boot-starter-data-mongodb-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
     testImplementation("org.springframework.shell:spring-shell-starter-test")
-    testImplementation("org.springframework:spring-core-test")
-    testImplementation("org.testcontainers:junit-jupiter")
-    testImplementation("org.testcontainers:mongodb")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testImplementation("org.testcontainers:testcontainers-junit-jupiter")
+    testImplementation("org.testcontainers:testcontainers-mongodb")
+    testImplementation(kotlin("test-junit5"))
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     mockitoAgent("org.mockito:mockito-core") { isTransitive = false }
 }
 
 dependencyManagement {
     imports {
-        mavenBom("org.springframework.shell:spring-shell-dependencies:3.4.1")
+        mavenBom("org.springframework.shell:spring-shell-dependencies:4.0.1")
     }
 }
 
@@ -59,7 +58,7 @@ application {
 
 kotlin {
     compilerOptions {
-        freeCompilerArgs.addAll("-Xjsr305=strict")
+        freeCompilerArgs.addAll("-Xjsr305=strict", "-Xannotation-default-target=param-property")
     }
 }
 
@@ -96,33 +95,41 @@ tasks {
         )
     }
 
-    bootJar {
-        manifest {
-            attributes("Enable-Native-Access" to "ALL-UNNAMED")
-        }
-    }
-
     jacocoTestReport {
         reports {
             xml.required = true
         }
     }
 
+    val aotOpens = listOf(
+        "--add-opens=java.base/java.io=ALL-UNNAMED",
+        "--add-opens=java.base/java.net=ALL-UNNAMED",
+    )
+
+    processAot {
+        jvmArgs = aotOpens
+    }
+
+    processTestAot {
+        jvmArgs = aotOpens
+    }
+
     withType<Test> {
         useJUnitPlatform()
+        systemProperties("user.language" to "en")
         jvmArgs("-javaagent:${mockitoAgent.asPath}")
     }
 }
 
 tasks.register<Exec>("buildImageAlpine") {
-    dependsOn(tasks.installDist)
+    inputs.files(tasks.installDist)
     group = "docker"
     description = "Builds the Docker image for MongoWay with Alpine Linux and Temurin JRE."
     commandLine("docker", "build", "--tag", "${imageBaseName}-alpine", ".")
 }
 
 tasks.register<Exec>("buildImageAlpaquita") {
-    dependsOn(tasks.installDist)
+    inputs.files(tasks.installDist)
     group = "docker"
     description = "Builds the Docker image for MongoWay with Alpaquita Linux and Liberica JRE."
     commandLine("docker", "build", "--tag", "${imageBaseName}-alpaquita", "--file", "Alpaquita.Dockerfile", ".")

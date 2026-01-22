@@ -8,26 +8,22 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.system.CapturedOutput
 import org.springframework.boot.test.system.OutputCaptureExtension
-import org.testcontainers.containers.MongoDBContainer
+import org.testcontainers.mongodb.MongoDBContainer
 import java.util.concurrent.TimeUnit
 import kotlin.test.Test
 
 @SpringBootTest(classes = [Config::class])
-class QueryCommandTest {
-
-    @Autowired
-    lateinit var testMongo: MongoDBContainer
-    @Autowired
-    lateinit var updateCommand: UpdateCommand
-    @Autowired
-    lateinit var command: QueryCommand
-    @Autowired
-    lateinit var config: Config
+class QueryCommandTest(
+    @Autowired testMongo: MongoDBContainer,
+    @Autowired config: Config,
+    @Autowired val updateCommand: UpdateCommand,
+    @Autowired val command: QueryCommand,
+) {
+    val connectionString = testMongo.connectionString + '/' + config.databaseName
 
     @Test
     @ExtendWith(OutputCaptureExtension::class)
     fun `query by globalUniqueChangeId`(output: CapturedOutput) {
-        val connectionString = testMongo.connectionString + '/' + config.databaseName
         updateCommand.update(connectionString, "src/test/resources/update/insertOne/test02.json")
         command.query(connectionString, "update insertOne 2 2")
 

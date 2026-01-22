@@ -2,6 +2,8 @@ spring:
   application:
     name: MongoWay
   shell:
+    interactive:
+      enabled: false
     history:
       enabled: false
 logging:

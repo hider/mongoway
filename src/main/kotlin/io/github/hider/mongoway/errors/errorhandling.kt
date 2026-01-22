@@ -1,7 +1,8 @@
-package io.github.hider.mongoway
+package io.github.hider.mongoway.errors
 
 import org.bson.BsonInvalidOperationException
 import org.bson.codecs.configuration.CodecConfigurationException
+import org.springframework.util.StringUtils
 import java.lang.reflect.InvocationTargetException
 
 
@@ -53,8 +54,8 @@ internal fun globalUniqueChangeIdViolationError(path: String, globalUniqueChange
 internal fun changelogError(path: String, cause: String?) =
     "Error while processing change log [$path]: ${cause?.uncapitalize()}"
 
-private fun String.uncapitalize() = replaceFirstChar { it.lowercase() }
+private fun String.uncapitalize() = StringUtils.uncapitalizeAsProperty(this)
 
 private fun createErrorPrefix(counter: Int, vararg properties: String?): String {
-    return properties.filter { it != null }.joinToString(".", "changeSet[$counter].")
+    return properties.filterNotNull().joinToString(".", "changeSet[$counter].")
 }

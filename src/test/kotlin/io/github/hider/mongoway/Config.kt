@@ -6,7 +6,7 @@ import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection
 import org.springframework.context.annotation.Bean
 import org.springframework.validation.annotation.Validated
-import org.testcontainers.containers.MongoDBContainer
+import org.testcontainers.mongodb.MongoDBContainer
 
 
 @TestConfiguration(proxyBeanMethods = false)
@@ -19,6 +19,6 @@ class Config {
     @Bean
     @ServiceConnection
     fun testMongo(): MongoDBContainer {
-        return MongoDBContainer("mongo:8.0.13")
+        return MongoDBContainer("mongo:8.2.3")
     }
 }

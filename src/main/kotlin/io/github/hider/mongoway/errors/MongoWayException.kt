@@ -1,6 +1,6 @@
-package io.github.hider.mongoway
+package io.github.hider.mongoway.errors
 
-class ChangeValidationException(
+sealed class MongoWayException(
     message: String,
     cause: Throwable? = null
 ) : RuntimeException(message, cause)

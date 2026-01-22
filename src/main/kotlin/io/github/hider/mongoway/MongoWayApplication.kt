@@ -1,20 +1,23 @@
 package io.github.hider.mongoway
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.autoconfigure.data.mongo.MongoRepositoriesAutoConfiguration
-import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+import org.springframework.boot.data.mongodb.autoconfigure.DataMongoRepositoriesAutoConfiguration
+import org.springframework.boot.mongodb.autoconfigure.MongoAutoConfiguration
 import org.springframework.boot.runApplication
-import org.springframework.shell.command.annotation.CommandScan
+import org.springframework.core.NativeDetector
+import org.springframework.core.NativeDetector.Context
 
 @SpringBootApplication(
     exclude = [
         MongoAutoConfiguration::class,
-        MongoRepositoriesAutoConfiguration::class,
+        DataMongoRepositoriesAutoConfiguration::class,
     ],
 )
-@CommandScan
 class MongoWayApplication
 
 fun main(args: Array<String>) {
-    runApplication<MongoWayApplication>(*args)
+    if (NativeDetector.inNativeImage(Context.RUN)) {
+        System.setProperty("user.name", System.getenv("USER") ?: System.getenv("USERNAME") ?: "??")
+    }
+    runApplication<MongoWayApplication>(*args.ifEmpty { arrayOf("help") })
 }

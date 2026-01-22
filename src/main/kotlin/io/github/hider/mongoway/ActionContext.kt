@@ -1,5 +1,6 @@
 package io.github.hider.mongoway
 
+import io.github.hider.mongoway.errors.ChangeValidationException
 import org.bson.BsonInvalidOperationException
 import org.bson.BsonType
 import org.bson.Document

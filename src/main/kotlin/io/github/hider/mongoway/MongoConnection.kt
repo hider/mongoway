@@ -6,6 +6,7 @@ import com.mongodb.client.MongoClients
 import com.mongodb.client.MongoDatabase
 import com.mongodb.event.ServerDescriptionChangedEvent
 import com.mongodb.event.ServerListener
+import io.github.hider.mongoway.errors.StartupException
 import org.bson.codecs.configuration.CodecRegistry
 import org.springframework.boot.info.BuildProperties
 import org.springframework.data.convert.ConfigurableTypeInformationMapper
