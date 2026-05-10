@@ -1,17 +1,17 @@
 plugins {
-    val kotlinVersion = "2.3.0"
+    val kotlinVersion = "2.3.20"
     kotlin("jvm") version kotlinVersion
     kotlin("plugin.spring") version kotlinVersion
-    id("org.springframework.boot") version "4.0.2"
+    id("org.springframework.boot") version "4.0.6"
     id("io.spring.dependency-management") version "1.1.7"
-    id("org.graalvm.buildtools.native") version "0.11.4"
+    id("org.graalvm.buildtools.native") version "1.1.0"
     `java-test-fixtures`
     jacoco
     application
 }
 
 group = "io.github.hider"
-version = "0.1.0"
+version = "1.0.0"
 description = "MongoWay is a Database Change Management Tool for MongoDB"
 
 java {
@@ -30,7 +30,7 @@ dependencies {
     implementation(kotlin("reflect"))
     implementation("org.springframework.boot:spring-boot-starter-data-mongodb")
     implementation("org.springframework.shell:spring-shell-starter")
-    implementation("org.mongodb:bson-kotlin:5.6.2")
+    implementation("org.mongodb:bson-kotlin:5.7.0")
 
     testImplementation("org.springframework.boot:spring-boot-starter-data-mongodb-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
@@ -44,7 +44,7 @@ dependencies {
 
 dependencyManagement {
     imports {
-        mavenBom("org.springframework.shell:spring-shell-dependencies:4.0.1")
+        mavenBom("org.springframework.shell:spring-shell-dependencies:4.0.2")
     }
 }
 
@@ -137,9 +137,10 @@ tasks.register<Exec>("buildImageAlpaquita") {
 
 tasks.register("printGithubActionOutput") {
     group = "docker"
+    description = "Prints helper text for GitHub Actions image build steps."
     println("version=${project.version}")
     print("tags=")
-    arrayOf("alpine", "alpaquita").forEach {
+    arrayOf("alpine", "alpaquita", "native").forEach {
         print("$imageBaseName-$it ")
     }
     println()

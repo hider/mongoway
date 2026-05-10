@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.boot.info.BuildProperties
 import org.springframework.core.io.FileSystemResourceLoader
 import org.springframework.shell.core.command.annotation.Argument
+import org.springframework.shell.core.command.annotation.Arguments
 import org.springframework.shell.core.command.annotation.Command
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
@@ -43,7 +44,7 @@ $PATHS_DESCRIPTION""",
         @NotBlank
         @Argument(index = 1)
         changelogPath: String,
-        @RemainingArguments
+        @Arguments
         vararg changelogPaths: String,
     ) {
         val paths = arrayOf(changelogPath, *changelogPaths)

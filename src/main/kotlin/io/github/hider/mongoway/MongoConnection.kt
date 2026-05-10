@@ -4,10 +4,10 @@ import com.mongodb.ConnectionString
 import com.mongodb.MongoClientSettings
 import com.mongodb.client.MongoClients
 import com.mongodb.client.MongoDatabase
-import com.mongodb.event.ServerDescriptionChangedEvent
-import com.mongodb.event.ServerListener
 import io.github.hider.mongoway.errors.StartupException
+import org.bson.Document
 import org.bson.codecs.configuration.CodecRegistry
+import org.slf4j.LoggerFactory
 import org.springframework.boot.info.BuildProperties
 import org.springframework.data.convert.ConfigurableTypeInformationMapper
 import org.springframework.data.mongodb.MongoDatabaseFactory
@@ -23,7 +23,9 @@ import org.springframework.stereotype.Component
 import java.net.URI
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.CountDownLatch
+import java.util.*
+import kotlin.concurrent.schedule
+
 
 @Component
 class MongoConnection(
@@ -32,33 +34,31 @@ class MongoConnection(
     private val customConversions: MongoCustomConversions,
     private val sourceTypeMap: Map<Class<out ChangeAction>, String>,
 ) {
+    private val log = LoggerFactory.getLogger(this::class.java)
+
     fun useDatabase(
         connectionString: String,
         block: (db: MongoDatabase, repo: DatabaseChangelogRepository) -> Unit,
     ) {
-        val changeSignal = CountDownLatch(1)
-        var serverException: Throwable? = null
         val (databaseName, cs) = createConnectionString(connectionString)
         val clientSettings = MongoClientSettings.builder()
             .applyConnectionString(cs)
             .codecRegistry(customCodecRegistry)
-            .applyToServerSettings { builder ->
-                builder.addServerListener(object : ServerListener {
-                    override fun serverDescriptionChanged(event: ServerDescriptionChangedEvent) {
-                        if (event.newDescription.exception != null) {
-                            serverException = event.newDescription.exception
-                        }
-                        changeSignal.countDown()
-                    }
-                })
-            }
             .build()
+
+        val timer = Timer(true)
+        val warnTask = timer.schedule(2000L) {
+            log.warn("Connecting to MongoDB is taking longer than expected. Please verify your connection string and network status...")
+        }
+
         MongoClients.create(clientSettings).use { mongo ->
-            // No explicit timeout handling here, as we rely on the server listener to notify us of any issues.
-            changeSignal.await()
-            val ex = serverException
-            if (ex != null) {
-                throw StartupException("Unable to connect to the MongoDB database. Ensure the specified server is running and accessible on your network. ${ex.message}: ${ex.cause?.message}.")
+            try {
+                mongo.getDatabase("admin").runCommand(Document("ping", 1))
+            } catch (e: Exception) {
+                throw StartupException("Unable to connect to the MongoDB database. Ensure the specified server is running and accessible on your network. ${e.message}", e)
+            } finally {
+                warnTask.cancel()
+                timer.cancel()
             }
 
             val databaseFactory = SimpleMongoClientDatabaseFactory(mongo, databaseName)

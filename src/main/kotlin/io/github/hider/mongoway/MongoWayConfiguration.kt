@@ -1,23 +1,23 @@
 package io.github.hider.mongoway
 
 import com.mongodb.MongoClientSettings
-import org.bson.codecs.Codec
+import io.github.hider.mongoway.errors.StartupException
 import org.bson.codecs.configuration.CodecProvider
 import org.bson.codecs.configuration.CodecRegistries
 import org.bson.codecs.configuration.CodecRegistry
-import org.bson.codecs.kotlin.PatchedDataClassCodec
 import org.bson.codecs.pojo.ClassModel
 import org.bson.codecs.pojo.PojoCodecProvider
+import org.springframework.boot.ApplicationRunner
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.io.FileSystemResourceLoader
 import org.springframework.core.io.Resource
 import org.springframework.data.mongodb.core.convert.MongoCustomConversions
-import org.springframework.shell.core.command.CommandParser
-import org.springframework.shell.core.command.CommandRegistry
-import org.springframework.shell.core.command.DefaultCommandParser
-import org.springframework.shell.core.command.ParsedInput
-import java.lang.reflect.Type
+import org.springframework.shell.core.NonInteractiveShellRunner
+import org.springframework.shell.core.ShellRunner
+import org.springframework.shell.core.command.*
+import java.io.PrintWriter
 
 
 @Configuration
@@ -35,7 +35,6 @@ class MongoWayConfiguration {
     @Bean
     fun customCodecRegistry(sourceTypeMap: Map<Class<out ChangeAction>, String>): CodecRegistry {
         return CodecRegistries.fromRegistries(
-            CodecRegistries.fromProviders(PatchedDataClassCodecProvider()),
             MongoClientSettings.getDefaultCodecRegistry(),
             CodecRegistries.fromProviders(createChangeActionCodecProvider(sourceTypeMap)),
         )
@@ -104,6 +103,41 @@ class MongoWayConfiguration {
         }
     }
 
+    @Workaround
+    @Bean
+    @ConditionalOnProperty(prefix = "spring.shell.interactive", name = ["enabled"], havingValue = "false")
+    fun springShellApplicationRunner(shellRunner: ShellRunner): ApplicationRunner {
+        if (shellRunner is NonInteractiveShellRunner) {
+            return { args ->
+                try {
+                    shellRunner.run(args.sourceArgs)
+                } catch (e: CommandExecutionException) {
+                    if (e.exitCode == ExitStatus.USAGE_ERROR.code()) {
+                        val outputWriter = NonInteractiveShellRunner::class
+                            .java
+                            .getDeclaredField("outputWriter")
+                            .apply {
+                                isAccessible = true
+                            }
+                            .get(shellRunner)
+                        if (outputWriter is PrintWriter) {
+                            outputWriter.flush()
+                        }
+                        val command = "Unable to execute command (\\w+) .*"
+                            .toRegex()
+                            .find(e.message!!)
+                            ?.groupValues
+                            ?.get(1)
+                            ?: "<command>"
+                        throw StartupException("Invalid usage. See '$command --help' for help.", e)
+                    }
+                    throw e
+                }
+            }
+        }
+        return { shellRunner.run(it.sourceArgs) }
+    }
+
     private fun createChangeActionCodecProvider(sourceTypeMap: Map<Class<out ChangeAction>, String>): CodecProvider {
         val sealedClassModel =
             ClassModel.builder(ChangeAction::class.java)
@@ -128,14 +162,6 @@ class MongoWayConfiguration {
         val username: String,
         val hostname: String?,
     )
-
-    @Workaround
-    private class PatchedDataClassCodecProvider : CodecProvider {
-        override fun <T : Any> get(clazz: Class<T>, registry: CodecRegistry): Codec<T>? = get(clazz, emptyList(), registry)
-
-        override fun <T : Any> get(clazz: Class<T>, typeArguments: List<Type>, registry: CodecRegistry): Codec<T>? =
-            PatchedDataClassCodec.create(clazz.kotlin, registry, typeArguments)
-    }
 
     private fun String?.blankToNull(): String? = if (isNullOrBlank()) null else this
 }
