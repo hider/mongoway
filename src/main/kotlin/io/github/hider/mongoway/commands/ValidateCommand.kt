@@ -1,13 +1,14 @@
 package io.github.hider.mongoway.commands
 
-import io.github.hider.mongoway.errors.ChangeValidationException
 import io.github.hider.mongoway.ChangelogProcessor
+import io.github.hider.mongoway.errors.ChangeValidationException
 import io.github.hider.mongoway.errors.changelogError
 import io.github.hider.mongoway.errors.globalUniqueChangeIdViolationError
 import jakarta.validation.constraints.NotBlank
 import org.slf4j.LoggerFactory
 import org.springframework.core.io.FileSystemResourceLoader
 import org.springframework.shell.core.command.annotation.Argument
+import org.springframework.shell.core.command.annotation.Arguments
 import org.springframework.shell.core.command.annotation.Command
 import org.springframework.stereotype.Component
 
@@ -35,7 +36,7 @@ $PATHS_DESCRIPTION""",
         @NotBlank
         @Argument(index = 0)
         changelogPath: String,
-        @RemainingArguments
+        @Arguments
         vararg changelogPaths: String,
     ) {
         val paths = arrayOf(changelogPath, *changelogPaths)

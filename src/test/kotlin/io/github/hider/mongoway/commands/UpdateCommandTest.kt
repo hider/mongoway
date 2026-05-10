@@ -10,7 +10,6 @@ import org.bson.json.JsonParseException
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.testcontainers.mongodb.MongoDBContainer
-import java.lang.reflect.InvocationTargetException
 import kotlin.test.*
 
 @SpringBootTest(classes = [Config::class])
@@ -61,12 +60,12 @@ class UpdateCommandTest(
             command.update(connectionString, path)
         }.also { ex ->
             assertEquals(
-                "Error while processing change log [$path]: changeSet[0].change.filter property is required but it is missing or null.",
+                "Error while processing change log [$path]: changeSet[0].change.filter required property is missing or null.",
                 ex.message
             )
             assertIs<ChangeValidationException>(ex.cause).also {
-                assertEquals("changeSet[0].change.filter property is required but it is missing or null.", it.message)
-                assertIs<InvocationTargetException>(it.cause)
+                assertEquals("changeSet[0].change.filter required property is missing or null.", it.message)
+                assertNull(it.cause)
             }
         }
     }

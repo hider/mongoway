@@ -37,15 +37,15 @@ class ShellTests(
     @Test
     @ExtendWith(OutputCaptureExtension::class)
     fun `read from stdin and fail`(output: CapturedOutput) {
+        // ShellInputProvider cannot be used as it depends on SystemShellRunner which depends on System.console() which is null in tests.
         val stdin = System.`in`
         System.setIn("[{}]".byteInputStream())
         val ex = assertFailsWith<CommandExecutionException> {
             client.sendCommand("update $connectionString -")
         }
         System.setIn(stdin)
-        val cwd = Path("").absolutePathString()
         assertEquals(
-            "Error while processing change log [$cwd]: changeSet[0].globalUniqueChangeId property is required but it is missing or null.",
+            "Error while processing change log [stdin://]: changeSet[0].globalUniqueChangeId required property is missing or null.",
             assertIs<InvocationTargetException>(ex.cause).targetException.message
         )
         await()

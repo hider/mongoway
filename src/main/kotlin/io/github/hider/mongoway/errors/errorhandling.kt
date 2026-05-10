@@ -3,47 +3,47 @@ package io.github.hider.mongoway.errors
 import org.bson.BsonInvalidOperationException
 import org.bson.codecs.configuration.CodecConfigurationException
 import org.springframework.util.StringUtils
-import java.lang.reflect.InvocationTargetException
 
 
-private val re = Regex("Invalid (\\w+) type, found: (\\w+)")
+private val reInvalid = Regex("Invalid (\\w+) type, found: (\\w+)")
+private val reUnable = Regex("Unable to decode (\\w+) for (\\w+) data class.")
+private val reRequired = Regex("Required field '(\\w+)' is missing from the document for (\\w+) data class")
 
 internal fun handleParseError(ex: CodecConfigurationException, counter: Int, parentProperty: String? = null): Exception {
     val cause = ex.cause
-    if (cause is InvocationTargetException && cause.targetException is NullPointerException) {
-        val missingProperty = cause.targetException.message?.substringAfterLast(" ")
-        return ChangeValidationException(
-            createErrorPrefix(
-                counter,
-                parentProperty,
-                missingProperty
-            ) + " property is required but it is missing or null.", cause
-        )
-    }
-    if (cause is BsonInvalidOperationException) {
-        if (ex.message?.startsWith("Unable to decode ") == true) {
-            val problematicProperty = ex.message?.substringAfter("Unable to decode ")?.substringBefore(" for")
-            val message = ex.cause?.message
-            val errorPostFix = if (message != null) {
-                val (expected, actual) = re.find(message)!!.destructured
-                " property has invalid type: expected '$expected', got '${actual.lowercase()}'."
-            } else {
-                " property has invalid type."
+    val message = ex.message
+    if (message != null) {
+        val problematicProperty = reUnable.extractFirstGroup(message) ?: reRequired.extractFirstGroup(message)
+        if (problematicProperty != null) {
+            if (cause is BsonInvalidOperationException) {
+                val errorPostFix = cause.message
+                    ?.let { causeMessage ->
+                        reInvalid.find(causeMessage)
+                    }
+                    ?.destructured
+                    ?.let { (expected, actual) ->
+                        " property has invalid type: expected '$expected', got '${actual.lowercase()}'."
+                    }
+                    ?: " property has invalid type."
+                return ChangeValidationException(
+                    createErrorPrefix(
+                        counter,
+                        parentProperty,
+                        problematicProperty
+                    ) + errorPostFix, cause
+                )
+            }
+            if (cause is CodecConfigurationException) {
+                return handleParseError(cause, counter, problematicProperty)
             }
             return ChangeValidationException(
                 createErrorPrefix(
                     counter,
                     parentProperty,
                     problematicProperty
-                ) + errorPostFix, cause
+                ) + " required property is missing or null.", cause
             )
         }
-    }
-    if (cause is CodecConfigurationException) {
-        val problematicProperty = if (ex.message?.startsWith("Unable to decode ") == true) {
-            ex.message?.substringAfter("Unable to decode ")?.substringBefore(" for")
-        } else null
-        return handleParseError(cause, counter, problematicProperty)
     }
     return ex
 }
@@ -58,4 +58,10 @@ private fun String.uncapitalize() = StringUtils.uncapitalizeAsProperty(this)
 
 private fun createErrorPrefix(counter: Int, vararg properties: String?): String {
     return properties.filterNotNull().joinToString(".", "changeSet[$counter].")
+}
+
+private fun Regex.extractFirstGroup(message: String): String? {
+    return find(message)
+        ?.groupValues
+        ?.get(1)
 }

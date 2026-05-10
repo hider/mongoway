@@ -14,5 +14,7 @@ logging:
         boot: OFF
         data:
           mongodb: ERROR
+        shell:
+          core: OFF
   pattern:
     console: "%msg%n"

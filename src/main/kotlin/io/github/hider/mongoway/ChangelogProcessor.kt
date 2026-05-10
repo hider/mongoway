@@ -56,7 +56,7 @@ class ChangelogProcessor(
 
     private fun fromStdinToSequence() = sequence {
         log.info("Reading change log from standard input...")
-        val path = System.getProperty("user.dir")
+        val path = "stdin://"
         System.`in`.bufferedReader()
             .use { reader ->
                 yieldAll(reader.readChanges().map { ProcessedChangeSet(path, it) })
