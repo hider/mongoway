@@ -34,15 +34,15 @@ class UpdateCommand(
         description = DESCRIPTION,
         help = """$DESCRIPTION
 Usage: update <connectionString> <changelogPath> [changelogPaths...]
-$CS_DESCRIPTION
-$PATHS_DESCRIPTION""",
+$CS_DESCRIPTION_FULL
+$PATHS_DESCRIPTION_FULL""",
     )
     fun update(
-        @Argument(index = 0)
+        @Argument(index = 0, description = CS_DESCRIPTION_SHORT)
         @NotBlank
         connectionString: String,
         @NotBlank
-        @Argument(index = 1)
+        @Argument(index = 1, description = PATHS_DESCRIPTION_SHORT)
         changelogPath: String,
         @Arguments
         vararg changelogPaths: String,

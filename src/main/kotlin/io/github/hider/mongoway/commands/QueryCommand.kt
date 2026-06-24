@@ -29,15 +29,16 @@ class QueryCommand(
         description = "Query a change set by globalUniqueChangeId.",
         help = """$DESCRIPTION
 Usage: query <connectionString> <globalUniqueChangeId>
-$CS_DESCRIPTION
-  [1mglobalUniqueChangeId[0m the unique identifier of the change set""",
+$CS_DESCRIPTION_FULL
+  [1mglobalUniqueChangeId[0m the $UNIQUE_ID_DESCRIPTION""",
     )
     fun query(
         @NotBlank
-        @Argument(index = 0)
+        @Argument(index = 0, description = CS_DESCRIPTION_SHORT)
         connectionString: String,
         @NotBlank
-        @Argument(index = 1) globalUniqueChangeId: String,
+        @Argument(index = 1, description = UNIQUE_ID_DESCRIPTION)
+        globalUniqueChangeId: String,
     ) {
         connection.useDatabase(connectionString) { _, databaseChangelog ->
             val changelog =

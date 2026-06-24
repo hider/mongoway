@@ -32,7 +32,6 @@ class MongoConnection(
     private val customCodecRegistry: CodecRegistry,
     private val buildProperties: BuildProperties,
     private val customConversions: MongoCustomConversions,
-    private val sourceTypeMap: Map<Class<out ChangeAction>, String>,
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 

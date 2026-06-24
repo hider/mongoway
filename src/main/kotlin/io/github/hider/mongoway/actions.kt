@@ -327,6 +327,13 @@ data class ExecutionResult(
     val rollback: ChangeAction?,
 )
 
+val sourceTypeMap = ChangeAction::class
+    .sealedSubclasses
+    .flatMap { it.sealedSubclasses + it }
+    .filter { it.isData }
+    .map { it.java }
+    .associateWith { action -> action.simpleName.replaceFirstChar { it.lowercase() } }
+
 private fun ByteArray.toHash(): Hash {
     val hashBytes = MessageDigest.getInstance("SHA-512").digest(this)
     return Hash(Binary(hashBytes))

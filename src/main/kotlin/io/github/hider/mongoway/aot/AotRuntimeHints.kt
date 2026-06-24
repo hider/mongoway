@@ -2,7 +2,7 @@ package io.github.hider.mongoway.aot
 
 import com.sun.el.ExpressionFactoryImpl
 import io.github.hider.mongoway.DatabaseChangelogRepository
-import io.github.hider.mongoway.MongoWayConfiguration
+import io.github.hider.mongoway.sourceTypeMap
 import org.hibernate.validator.internal.util.logging.`Log_$logger`
 import org.hibernate.validator.internal.util.logging.`Messages_$bundle`
 import org.springframework.aop.framework.Advised
@@ -28,7 +28,7 @@ class AotRuntimeHints : RuntimeHintsRegistrar {
             Advised::class,
             DecoratingProxy::class,
         )
-        bindingRegistrar.registerReflectionHints(hints.reflection(), *MongoWayConfiguration().sourceTypeMap().keys.toTypedArray())
+        bindingRegistrar.registerReflectionHints(hints.reflection(), *sourceTypeMap.keys.toTypedArray())
         hints.reflection()
             // Fixes: kotlin.reflect.jvm.internal.KotlinReflectionInternalError: Unresolved class: class java.util.Collections$SingletonMap (kind = null)
             .registerType(Class.forName($$"java.util.Collections$SingletonMap"))

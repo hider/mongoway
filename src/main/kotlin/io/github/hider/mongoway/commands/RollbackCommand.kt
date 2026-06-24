@@ -29,14 +29,16 @@ class RollbackCommand(
         description = "Rollback change set by globalUniqueChangeId.",
         help = """$DESCRIPTION
 Usage: rollback <connectionString> <globalUniqueChangeId>
-$CS_DESCRIPTION
-  [1mglobalUniqueChangeId[0m the unique identifier of the change set""",
+$CS_DESCRIPTION_FULL
+  [1mglobalUniqueChangeId[0m $UNIQUE_ID_DESCRIPTION""",
     )
     fun rollback(
         @NotBlank
-        @Argument(index = 0) connectionString: String,
+        @Argument(index = 0, description = CS_DESCRIPTION_SHORT)
+        connectionString: String,
         @NotBlank
-        @Argument(index = 1) globalUniqueChangeId: String,
+        @Argument(index = 1, description = UNIQUE_ID_DESCRIPTION)
+        globalUniqueChangeId: String,
     ) {
         val now = LocalDateTime.now()
         connection.useDatabase(connectionString) { db, databaseChangelog ->

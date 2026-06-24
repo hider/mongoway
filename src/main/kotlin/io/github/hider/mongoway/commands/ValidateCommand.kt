@@ -30,11 +30,11 @@ class ValidateCommand(
         description = DESCRIPTION,
         help = """$DESCRIPTION
 Usage: validate <changelogPath> [changelogPaths...]
-$PATHS_DESCRIPTION""",
+$PATHS_DESCRIPTION_FULL""",
     )
     fun validate(
         @NotBlank
-        @Argument(index = 0)
+        @Argument(index = 0, description = PATHS_DESCRIPTION_SHORT)
         changelogPath: String,
         @Arguments
         vararg changelogPaths: String,

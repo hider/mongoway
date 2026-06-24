@@ -13,7 +13,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.io.FileSystemResourceLoader
 import org.springframework.core.io.Resource
-import org.springframework.data.mongodb.core.convert.MongoCustomConversions
 import org.springframework.shell.core.NonInteractiveShellRunner
 import org.springframework.shell.core.ShellRunner
 import org.springframework.shell.core.command.*
@@ -24,25 +23,11 @@ import java.io.PrintWriter
 class MongoWayConfiguration {
 
     @Bean
-    fun sourceTypeMap(): Map<Class<out ChangeAction>, String> {
-        return ChangeAction::class.sealedSubclasses
-            .flatMap { it.sealedSubclasses + it }
-            .filter { it.isData }
-            .map { it.java }
-            .associateWith { action -> action.simpleName.replaceFirstChar { it.lowercase() } }
-    }
-
-    @Bean
-    fun customCodecRegistry(sourceTypeMap: Map<Class<out ChangeAction>, String>): CodecRegistry {
+    fun customCodecRegistry(): CodecRegistry {
         return CodecRegistries.fromRegistries(
             MongoClientSettings.getDefaultCodecRegistry(),
-            CodecRegistries.fromProviders(createChangeActionCodecProvider(sourceTypeMap)),
+            CodecRegistries.fromProviders(sourceTypeMap.toCodecProvider()),
         )
-    }
-
-    @Bean
-    fun customConversions(): MongoCustomConversions {
-        return MongoCustomConversions(emptyList<Any>())
     }
 
     @Bean
@@ -138,30 +123,30 @@ class MongoWayConfiguration {
         return { shellRunner.run(it.sourceArgs) }
     }
 
-    private fun createChangeActionCodecProvider(sourceTypeMap: Map<Class<out ChangeAction>, String>): CodecProvider {
-        val sealedClassModel =
-            ClassModel.builder(ChangeAction::class.java)
-                .discriminatorKey("action")
-                .enableDiscriminator(true)
-                .build()
-
-        val actionModels = sourceTypeMap.map { (action, discriminator) ->
-                ClassModel.builder(action)
-                    .discriminator(discriminator)
-                    .build()
-            }
-            .toTypedArray()
-
-        return PojoCodecProvider.builder()
-            .register(sealedClassModel)
-            .register(*actionModels)
-            .build()
-    }
-
     data class Env(
         val username: String,
         val hostname: String?,
     )
-
-    private fun String?.blankToNull(): String? = if (isNullOrBlank()) null else this
 }
+
+private fun Map<Class<out ChangeAction>, String>.toCodecProvider(): CodecProvider {
+    val sealedClassModel =
+        ClassModel.builder(ChangeAction::class.java)
+            .discriminatorKey("action")
+            .enableDiscriminator(true)
+            .build()
+
+    val actionModels = map { (action, discriminator) ->
+        ClassModel.builder(action)
+            .discriminator(discriminator)
+            .build()
+    }
+        .toTypedArray()
+
+    return PojoCodecProvider.builder()
+        .register(sealedClassModel)
+        .register(*actionModels)
+        .build()
+}
+
+private fun String?.blankToNull(): String? = if (isNullOrBlank()) null else this
